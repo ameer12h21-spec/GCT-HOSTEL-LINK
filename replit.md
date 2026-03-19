@@ -2,7 +2,7 @@
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+pnpm workspace monorepo using TypeScript. Contains the GCT Hostel Link application plus the base API server infrastructure.
 
 ## Stack
 
@@ -11,7 +11,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
 - **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
+- **Database**: PostgreSQL + Drizzle ORM (api-server), Supabase (gct-hostel-link)
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
@@ -20,77 +20,163 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 
 ```text
 artifacts-monorepo/
-├── artifacts/              # Deployable applications
-│   └── api-server/         # Express API server
-├── lib/                    # Shared libraries
-│   ├── api-spec/           # OpenAPI spec + Orval codegen config
-│   ├── api-client-react/   # Generated React Query hooks
-│   ├── api-zod/            # Generated Zod schemas from OpenAPI
-│   └── db/                 # Drizzle ORM schema + DB connection
-├── scripts/                # Utility scripts (single workspace package)
-│   └── src/                # Individual .ts scripts, run via `pnpm --filter @workspace/scripts run <script>`
-├── pnpm-workspace.yaml     # pnpm workspace (artifacts/*, lib/*, lib/integrations/*, scripts)
-├── tsconfig.base.json      # Shared TS options (composite, bundler resolution, es2022)
-├── tsconfig.json           # Root TS project references
-└── package.json            # Root package with hoisted devDeps
+├── artifacts/
+│   ├── api-server/           # Express API server
+│   ├── gct-hostel-link/      # GCT Hostel Link React/Vite app
+│   └── mockup-sandbox/       # Component preview server
+├── lib/                      # Shared libraries
+│   ├── api-spec/             # OpenAPI spec + Orval codegen config
+│   ├── api-client-react/     # Generated React Query hooks
+│   ├── api-zod/              # Generated Zod schemas from OpenAPI
+│   └── db/                   # Drizzle ORM schema + DB connection
+├── scripts/                  # Utility scripts
+├── pnpm-workspace.yaml
+├── tsconfig.base.json
+├── tsconfig.json
+└── package.json
 ```
+
+---
+
+## GCT Hostel Link — artifacts/gct-hostel-link
+
+### Project Details
+- **Name**: GCT Hostel Link
+- **Developer**: Ameer Hamza Arshad
+- **Institution**: GCT TEVTA Hostel, Taxila
+- **Stack**: React 19 + Vite + TypeScript + Tailwind CSS + shadcn/ui + Supabase
+- **Currency**: PKR (formatted via `Intl.NumberFormat`)
+- **Theme**: Dark/Light mode toggle (persisted in localStorage)
+- **Layout**: Mobile-first responsive
+
+### Supabase Configuration
+- **URL**: `VITE_SUPABASE_URL` env var
+- **Anon Key**: `VITE_SUPABASE_ANON_KEY` env var
+- **SQL Schema**: `artifacts/gct-hostel-link/supabase_schema.sql`
+- **Storage bucket**: `profile-photos` (max 3MB, any image format)
+
+### Database Tables
+1. `profiles` — All users (admin, teacher, mess_owner, student)
+2. `deleted_profiles` — Soft-deleted profiles (admin trash)
+3. `attendance` — Daily attendance records (locked after 3 days)
+4. `mess_fees` — Monthly mess fees per student (default 7780 PKR)
+5. `electricity_bills` — Monthly electricity bills per student
+6. `complaints` — Student complaints (anonymous to other students)
+7. `deleted_complaints` — Soft-deleted/resolved complaints
+8. `audit_logs` — Admin audit trail
+9. `admission_settings` — Toggle admissions open/closed
+
+### Roles & Access
+- **Admin**: Full access — manages students, staff, attendance, fees, complaints, trash
+- **Teacher**: Marks attendance (locks after 3 days), sets electricity bills, views/responds to complaints
+- **Mess Owner**: Sets/marks mess fees (global + per-student), views payment history
+- **Student**: Views own data, submits complaints (anonymously), uploads profile photo
+
+### Key Business Rules
+- Student signup → `status="pending"`, admin approves → `status="active"`
+- Staff (admin/teacher/mess_owner) created by admin only with secret key (ADMIN-001, TEACH-001, MESS-001)
+- Roll number regex: `/^\d{3}[RS]\d{2,3}$/` (R=morning, S=evening)
+- Attendance locks after 3 days; only admin can edit locked records
+- Electricity bills are final once set
+- Complaints are anonymous to other students; author visible to teacher/admin
+- Resolved/cancelled complaints move to `deleted_complaints`
+- Footer: "© 2026 Ameer Hamza Arshad — All Rights Reserved | GCT Hostel Link – TEVTA Taxila"
+
+### Pages Implemented
+
+**Public (10 pages)**
+- `/` — Landing page (hero, features, stats)
+- `/login` — Email + Password login
+- `/signup` — Student registration form
+- `/admissions` — Admissions status (reads admission_settings)
+- `/about` — About the hostel
+- `/facilities` — Hostel facilities
+- `/how-it-works` — System guide for all roles
+- `/support` — Contact & support
+- `/privacy` — Privacy policy
+- `/terms` — Terms of service
+
+**Admin (8 pages)** — `/admin/*`
+- Layout with sidebar
+- Home (dashboard stats)
+- Students (create/approve/disable/delete)
+- Attendance (unlock override)
+- Complaints (view/respond)
+- Mess Fees (view all)
+- Staff (create with secret key)
+- Admissions (toggle open/close)
+- Trash + Audit (restore/purge deleted records)
+
+**Student (6 pages)** — `/student/*`
+- Layout with sidebar
+- Home
+- Profile (photo upload)
+- Attendance
+- Mess Fees
+- Electricity
+- Complaints (anonymous submit + view)
+
+**Teacher (6 pages)** — `/teacher/*`
+- Layout with sidebar
+- Home
+- Students (view list)
+- Attendance (mark, 3-day lock)
+- Electricity (set bills)
+- Complaints (view/respond)
+- Mess Fees (view-only)
+
+**Mess Owner (5 pages)** — `/mess/*`
+- Layout with sidebar
+- Home
+- Students (view)
+- Fees Management (global + individual fee)
+- Payment History
+- Profile
+
+### Key Source Files
+- `src/App.tsx` — All routes
+- `src/lib/supabase.ts` — Supabase client
+- `src/lib/auth.ts` — signIn, signUp, signOut, getProfile, updateProfile helpers
+- `src/lib/utils.ts` — formatPKR, cn
+- `src/hooks/useAuth.tsx` — AuthProvider + useAuth hook
+- `src/hooks/useTheme.tsx` — ThemeProvider + useTheme hook
+- `src/components/DashboardSidebar.tsx` — Sidebar for all dashboard roles
+- `src/components/Navbar.tsx` — Public navigation
+- `src/components/Footer.tsx` — Public footer
+
+---
 
 ## TypeScript & Composite Projects
 
-Every package extends `tsconfig.base.json` which sets `composite: true`. The root `tsconfig.json` lists all packages as project references. This means:
+Every package extends `tsconfig.base.json` which sets `composite: true`. The root `tsconfig.json` lists all packages as project references.
 
-- **Always typecheck from the root** — run `pnpm run typecheck` (which runs `tsc --build --emitDeclarationOnly`). This builds the full dependency graph so that cross-package imports resolve correctly. Running `tsc` inside a single package will fail if its dependencies haven't been built yet.
-- **`emitDeclarationOnly`** — we only emit `.d.ts` files during typecheck; actual JS bundling is handled by esbuild/tsx/vite...etc, not `tsc`.
-- **Project references** — when package A depends on package B, A's `tsconfig.json` must list B in its `references` array. `tsc --build` uses this to determine build order and skip up-to-date packages.
+- **Always typecheck from the root** — `pnpm run typecheck`
+- **`emitDeclarationOnly`** — only `.d.ts` files during typecheck
+- **Project references** — cross-package imports resolve via references
 
 ## Root Scripts
 
-- `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
-- `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
+- `pnpm run build` — runs `typecheck` first, then recursively runs `build`
+- `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly`
 
 ## Packages
 
 ### `artifacts/api-server` (`@workspace/api-server`)
 
-Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` for request and response validation and `@workspace/db` for persistence.
-
-- Entry: `src/index.ts` — reads `PORT`, starts Express
-- App setup: `src/app.ts` — mounts CORS, JSON/urlencoded parsing, routes at `/api`
-- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`)
-- Depends on: `@workspace/db`, `@workspace/api-zod`
-- `pnpm --filter @workspace/api-server run dev` — run the dev server
-- `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)
-- Build bundles an allowlist of deps (express, cors, pg, drizzle-orm, zod, etc.) and externalizes the rest
+Express 5 API server. Routes in `src/routes/`, validation via `@workspace/api-zod`, persistence via `@workspace/db`.
 
 ### `lib/db` (`@workspace/db`)
 
-Database layer using Drizzle ORM with PostgreSQL. Exports a Drizzle client instance and schema models.
-
-- `src/index.ts` — creates a `Pool` + Drizzle instance, exports schema
-- `src/schema/index.ts` — barrel re-export of all models
-- `src/schema/<modelname>.ts` — table definitions with `drizzle-zod` insert schemas (no models definitions exist right now)
-- `drizzle.config.ts` — Drizzle Kit config (requires `DATABASE_URL`, automatically provided by Replit)
-- Exports: `.` (pool, db, schema), `./schema` (schema only)
-
-Production migrations are handled by Replit when publishing. In development, we just use `pnpm --filter @workspace/db run push`, and we fallback to `pnpm --filter @workspace/db run push-force`.
+Drizzle ORM + PostgreSQL. Production migrations handled by Replit when publishing. Development: `pnpm --filter @workspace/db run push`.
 
 ### `lib/api-spec` (`@workspace/api-spec`)
 
-Owns the OpenAPI 3.1 spec (`openapi.yaml`) and the Orval config (`orval.config.ts`). Running codegen produces output into two sibling packages:
+OpenAPI 3.1 spec + Orval codegen. Run: `pnpm --filter @workspace/api-spec run codegen`
 
-1. `lib/api-client-react/src/generated/` — React Query hooks + fetch client
-2. `lib/api-zod/src/generated/` — Zod schemas
+### `lib/api-zod` / `lib/api-client-react`
 
-Run codegen: `pnpm --filter @workspace/api-spec run codegen`
-
-### `lib/api-zod` (`@workspace/api-zod`)
-
-Generated Zod schemas from the OpenAPI spec (e.g. `HealthCheckResponse`). Used by `api-server` for response validation.
-
-### `lib/api-client-react` (`@workspace/api-client-react`)
-
-Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHealthCheck`, `healthCheck`).
+Generated from OpenAPI spec via Orval.
 
 ### `scripts` (`@workspace/scripts`)
 
-Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+Utility scripts. Run: `pnpm --filter @workspace/scripts run <script>`

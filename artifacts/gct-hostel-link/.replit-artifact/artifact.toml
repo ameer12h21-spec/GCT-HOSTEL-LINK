@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "GCT Hostel Link"
+version = "1.0.0"
+id = "artifacts/gct-hostel-link"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23548
+
+[services.development]
+run = "pnpm --filter @workspace/gct-hostel-link run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/gct-hostel-link", "run", "build" ]
+publicDir = "artifacts/gct-hostel-link/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23548"
+BASE_PATH = "/"

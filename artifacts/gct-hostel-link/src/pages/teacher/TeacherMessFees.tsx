@@ -1,0 +1,81 @@
+import { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/lib/supabase";
+import { Loader2, Search } from "lucide-react";
+import { formatPKR } from "@/lib/utils";
+
+interface FeeRecord {
+  id: string;
+  student_id: string;
+  month: string;
+  amount: number;
+  status: "paid" | "unpaid";
+  profiles?: { name: string; roll_number: string; hostel: string };
+}
+
+export default function TeacherMessFees() {
+  const [fees, setFees] = useState<FeeRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
+
+  useEffect(() => {
+    supabase.from("mess_fees").select("*, profiles(name, roll_number, hostel)").eq("month", month).order("created_at", { ascending: false })
+      .then(({ data }) => { setFees(data || []); setLoading(false); });
+  }, [month]);
+
+  const filtered = fees.filter((f) => !search || (f.profiles?.name || "").toLowerCase().includes(search.toLowerCase()) || (f.profiles?.roll_number || "").toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Mess Fees (View Only)</h1>
+          <p className="text-sm text-muted-foreground">Fee records are managed by Mess Owner</p>
+        </div>
+        <input type="month" value={month} onChange={(e) => setMonth(e.target.value)}
+          className="border border-input rounded-lg px-3 py-2 text-sm bg-background text-foreground" />
+      </div>
+
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input placeholder="Search..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+      </div>
+
+      <div className="flex gap-4 mb-4 text-sm">
+        <span className="text-green-600">Paid: <strong>{filtered.filter(f => f.status === "paid").length}</strong></span>
+        <span className="text-red-600">Unpaid: <strong>{filtered.filter(f => f.status === "unpaid").length}</strong></span>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map((f) => (
+            <Card key={f.id} className="border border-border">
+              <CardContent className="p-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
+                    {f.profiles?.name?.charAt(0)}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-foreground truncate">{f.profiles?.name}</div>
+                    <div className="text-xs text-muted-foreground">{f.profiles?.roll_number} • {f.profiles?.hostel}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-sm font-semibold text-foreground">{formatPKR(f.amount)}</span>
+                  <Badge className={`text-xs ${f.status === "paid" ? "bg-green-500/15 text-green-600 border-green-500/30" : "bg-red-500/15 text-red-600 border-red-500/30"}`}>
+                    {f.status}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
