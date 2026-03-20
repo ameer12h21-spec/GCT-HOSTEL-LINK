@@ -33,20 +33,23 @@ export default function LoginPage() {
   async function onSubmit(data: FormData) {
     setLoading(true);
     try {
-      await signIn(data.email, data.password);
-
-      const { data: { user } } = await supabase.auth.getUser();
+      const authData = await signIn(data.email, data.password);
+      const user = authData.user;
       if (!user) throw new Error("Login failed");
 
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role, status")
         .eq("id", user.id)
         .single();
 
-      if (!profile) {
+      if (profileError || !profile) {
         await supabase.auth.signOut();
-        throw new Error("No profile found for this account. If you are an admin, please insert your profile row in Supabase. If you are a student, your account may not have been set up correctly.");
+        throw new Error(
+          profileError?.message
+            ? `Profile lookup failed: ${profileError.message}`
+            : "No profile found for this account. Please run the Supabase schema SQL and insert your admin profile row."
+        );
       }
 
       if (profile.status === "pending") {
