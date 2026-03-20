@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Building2, Mail, Phone, MapPin } from "lucide-react";
 
+
 export default function Footer() {
   return (
     <footer className="bg-sidebar text-sidebar-foreground border-t border-sidebar-border mt-auto">
@@ -21,12 +22,16 @@ export default function Footer() {
             </p>
             <div className="mt-4 space-y-2">
               <div className="flex items-center gap-2 text-sm text-sidebar-foreground/70">
-                <MapPin className="w-4 h-4" />
-                <span>GCT TEVTA Hostel, Taxila, Punjab, Pakistan</span>
+                <MapPin className="w-4 h-4 flex-shrink-0" />
+                <span>HMC Road near HMC-3, GCT (TEVTA), Taxila, Punjab, Pakistan</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-sidebar-foreground/70">
-                <Mail className="w-4 h-4" />
-                <span>support@gcthostellink.edu.pk</span>
+                <Phone className="w-4 h-4 flex-shrink-0" />
+                <span>+92-51-1234567</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-sidebar-foreground/70">
+                <Mail className="w-4 h-4 flex-shrink-0" />
+                <span>info@gcthostellink.edu.pk</span>
               </div>
             </div>
           </div>

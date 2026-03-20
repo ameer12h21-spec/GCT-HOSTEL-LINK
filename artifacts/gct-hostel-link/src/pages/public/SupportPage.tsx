@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone, MapPin, MessageSquare, Clock, HelpCircle } from "lucide-react";
 
+
 const faqs = [
   { q: "How do I sign up?", a: "Click the 'Sign Up' button and fill in your student information including name, roll number, technology, room number, shift, and hostel. Your account will be pending admin approval." },
   { q: "Why is my account still pending?", a: "Account activation requires admin approval to prevent unauthorized access. Please contact the hostel administration if your account has been pending for more than 2 business days." },
@@ -24,24 +25,31 @@ export default function SupportPage() {
           <p className="text-muted-foreground text-lg">Get help with GCT Hostel Link or contact the hostel administration.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <Card className="border border-border text-center">
             <CardContent className="p-6">
               <Mail className="w-8 h-8 text-blue-500 mx-auto mb-3" />
-              <h3 className="font-semibold text-foreground mb-1">Email Support</h3>
-              <p className="text-sm text-muted-foreground">support@gcthostellink.edu.pk</p>
+              <h3 className="font-semibold text-foreground mb-1">Email</h3>
+              <p className="text-sm text-muted-foreground">info@gcthostellink.edu.pk</p>
+            </CardContent>
+          </Card>
+          <Card className="border border-border text-center">
+            <CardContent className="p-6">
+              <Phone className="w-8 h-8 text-green-500 mx-auto mb-3" />
+              <h3 className="font-semibold text-foreground mb-1">Phone</h3>
+              <p className="text-sm text-muted-foreground">+92-51-1234567</p>
             </CardContent>
           </Card>
           <Card className="border border-border text-center">
             <CardContent className="p-6">
               <MapPin className="w-8 h-8 text-orange-500 mx-auto mb-3" />
               <h3 className="font-semibold text-foreground mb-1">Location</h3>
-              <p className="text-sm text-muted-foreground">GCT TEVTA Hostel, Taxila, Punjab</p>
+              <p className="text-sm text-muted-foreground">HMC Road near HMC-3, GCT TEVTA, Taxila, Punjab</p>
             </CardContent>
           </Card>
           <Card className="border border-border text-center">
             <CardContent className="p-6">
-              <Clock className="w-8 h-8 text-green-500 mx-auto mb-3" />
+              <Clock className="w-8 h-8 text-purple-500 mx-auto mb-3" />
               <h3 className="font-semibold text-foreground mb-1">Office Hours</h3>
               <p className="text-sm text-muted-foreground">Mon – Fri, 8:00 AM – 4:00 PM</p>
             </CardContent>

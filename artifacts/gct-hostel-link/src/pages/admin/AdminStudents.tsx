@@ -68,12 +68,18 @@ export default function AdminStudents() {
   }
 
   async function deleteStudent(student: Profile) {
-    if (!confirm(`Delete ${student.name}? Their data will be moved to trash.`)) return;
+    if (!confirm(`Delete ${student.name}? Their profile data will be moved to trash.`)) return;
     setActionLoading(student.id);
-    await supabase.from("deleted_profiles").insert({ ...student, deleted_at: new Date().toISOString() });
-    await supabase.auth.admin.deleteUser(student.id).catch(() => {});
+    const { error: trashErr } = await supabase.from("deleted_profiles").insert({
+      ...student, deleted_at: new Date().toISOString()
+    });
+    if (trashErr) {
+      toast({ title: "Error", description: trashErr.message, variant: "destructive" });
+      setActionLoading(null);
+      return;
+    }
     await supabase.from("profiles").delete().eq("id", student.id);
-    toast({ title: "Student Deleted", description: "Moved to trash." });
+    toast({ title: "Student Deleted", description: "Profile moved to trash. Remove from Supabase Auth manually if needed." });
     loadStudents();
     setActionLoading(null);
   }

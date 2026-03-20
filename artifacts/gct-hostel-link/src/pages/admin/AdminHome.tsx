@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { Users, CalendarCheck, DollarSign, MessageSquare, Clock, TrendingUp } from "lucide-react";
@@ -127,9 +128,9 @@ export default function AdminHome() {
                 { label: "Add Staff", href: "/admin/staff", color: "bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600" },
                 { label: "Admissions", href: "/admin/admissions", color: "bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-600" },
               ].map((action) => (
-                <a key={action.label} href={action.href} className={`${action.color} rounded-lg p-3 text-sm font-medium transition-colors text-center`}>
+                <Link key={action.label} href={action.href} className={`${action.color} rounded-lg p-3 text-sm font-medium transition-colors text-center block`}>
                   {action.label}
-                </a>
+                </Link>
               ))}
             </div>
           </CardContent>

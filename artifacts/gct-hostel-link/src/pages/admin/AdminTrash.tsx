@@ -73,7 +73,12 @@ export default function AdminTrash() {
   }
 
   async function restoreComplaint(c: DeletedComplaint) {
-    await supabase.from("complaints").insert({ ...c, status: "open", deleted_at: undefined, deleted_by: undefined });
+    const { id, subject, category, status, created_at } = c;
+    await supabase.from("complaints").insert({
+      id, subject, category, status: "open", created_at,
+      description: (c as any).description || "",
+      student_id: (c as any).student_id || null,
+    });
     await supabase.from("deleted_complaints").delete().eq("id", c.id);
     toast({ title: "Complaint Restored" });
     loadData();

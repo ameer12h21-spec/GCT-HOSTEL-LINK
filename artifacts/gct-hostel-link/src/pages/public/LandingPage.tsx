@@ -19,10 +19,10 @@ const features = [
 ];
 
 const stats = [
-  { value: "2", label: "Hostels", sub: "Jinnah & Iqbal" },
-  { value: "2", label: "Shifts", sub: "Morning & Evening" },
-  { value: "4", label: "Dashboards", sub: "Role-based access" },
-  { value: "PKR", label: "Currency", sub: "Pakistani Rupee" },
+  { value: "500+", label: "Students Capacity", sub: "Jinnah & Iqbal Hostels" },
+  { value: "50+", label: "Rooms", sub: "2 Shifts: Morning & Evening" },
+  { value: "15+", label: "Staff Members", sub: "Admin, Teachers & Mess" },
+  { value: "24/7", label: "Security", sub: "Round-the-clock safety" },
 ];
 
 export default function LandingPage() {
