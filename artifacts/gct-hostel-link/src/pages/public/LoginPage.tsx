@@ -44,7 +44,10 @@ export default function LoginPage() {
         .eq("id", user.id)
         .single();
 
-      if (!profile) throw new Error("Profile not found");
+      if (!profile) {
+        await supabase.auth.signOut();
+        throw new Error("No profile found for this account. If you are an admin, please insert your profile row in Supabase. If you are a student, your account may not have been set up correctly.");
+      }
 
       if (profile.status === "pending") {
         toast({
