@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { Loader2, Search, Download } from "lucide-react";
 import { formatPKR, formatDate } from "@/lib/utils";
@@ -24,12 +25,17 @@ export default function MessOwnerPaymentHistory() {
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
 
   useEffect(() => {
+    setLoading(true);
     supabase.from("mess_fees").select("*, profiles(name, roll_number, hostel)")
       .eq("month", month).eq("status", "paid").order("paid_at", { ascending: false })
       .then(({ data }) => { setRecords(data || []); setLoading(false); });
   }, [month]);
 
-  const filtered = records.filter((r) => !search || (r.profiles?.name || "").toLowerCase().includes(search.toLowerCase()) || (r.profiles?.roll_number || "").toLowerCase().includes(search.toLowerCase()));
+  const filtered = records.filter((r) =>
+    !search ||
+    (r.profiles?.name || "").toLowerCase().includes(search.toLowerCase()) ||
+    (r.profiles?.roll_number || "").toLowerCase().includes(search.toLowerCase())
+  );
 
   function handleExport() {
     const rows = filtered.map((r) => ({
@@ -43,6 +49,7 @@ export default function MessOwnerPaymentHistory() {
     }));
     exportToCSV(rows, `payment_history_${month}`);
   }
+
   const totalCollected = filtered.reduce((sum, r) => sum + r.amount, 0);
 
   return (
