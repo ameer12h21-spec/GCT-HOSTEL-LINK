@@ -5,8 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { Loader2, CheckCircle, XCircle, Eye } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Eye, Download } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
+import { exportToCSV } from "@/lib/exportUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Complaint {
@@ -28,6 +29,20 @@ export default function AdminComplaints() {
   const [selected, setSelected] = useState<Complaint | null>(null);
   const [reply, setReply] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+
+  function handleExport() {
+    const rows = filtered.map((c) => ({
+      Subject: c.subject,
+      Category: c.category,
+      Status: c.status,
+      "Student Name": c.profiles?.name || "",
+      "Roll Number": c.profiles?.roll_number || "",
+      Description: c.description,
+      Reply: c.reply || "",
+      "Created At": formatDateTime(c.created_at),
+    }));
+    exportToCSV(rows, "complaints");
+  }
 
   async function loadComplaints() {
     const { data } = await supabase
@@ -80,13 +95,16 @@ export default function AdminComplaints() {
           <h1 className="text-2xl font-bold text-foreground">Complaints Management</h1>
           <p className="text-sm text-muted-foreground">{complaints.length} total complaints</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {["all", "open", "in_progress", "fixed", "cancelled"].map((s) => (
             <Button key={s} size="sm" variant={filterStatus === s ? "default" : "outline"}
               onClick={() => setFilterStatus(s)} className="text-xs capitalize">
               {s.replace("_", " ")}
             </Button>
           ))}
+          <Button size="sm" variant="outline" onClick={handleExport}>
+            <Download className="w-3.5 h-3.5 mr-1" />CSV
+          </Button>
         </div>
       </div>
 

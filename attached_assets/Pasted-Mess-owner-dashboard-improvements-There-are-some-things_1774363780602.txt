@@ -1,0 +1,34 @@
+Mess owner dashboard improvements:
+There are some things that want correctness 
+First in mess management when mess owner do a student fees paid (default value is unpaid) and saves changes it should updated in real time in backend and database and in all profiles that have that data means if mess owner changes a student mess fees paid it shows paid in real time in student dashboard and admin dashboard and in teacher dashboard also updated in payment history section and in dashboard this is big issue because in payment there is no compromise in payment and fees or money so be careful in mess fees and electricity bill 
+also do this for electricity bill 
+
+Also in profile and settings of mess owner he only can change password not all other things do it correct so mess owner can change all of its info and also can upload it's profile pic 
+
+Admin dashboard improvements:
+
+Also admin can edit all mess fees records as mess owner can 
+
+Also one thing a main issue admin also want full powers for electricity bill as mess fees so make 360 bill section in admin dashboard 
+
+Also admin does not have profile and setting section create it also so admin can also change all of his settings and data like name profile picture and all data etc 
+
+In admission section in admin dashboard it has not perfect backend make it's perfect backend in so that if I change admissions status in admin dashboard they change real time on the first landing page in admission section 
+Also in trash and audit logs make everything restore able if you can otherwise skip this improvement if you cannot or if it is very difficult 
+
+
+In complaint management of admin dashboard ad one can manage all complaints in real time like teachers
+
+
+In attendance section admin has full power to update all attendance like teachers can 
+ only admin has one advanced feature that is he can change attendance after unlocking while teacher cannot 
+Admin can also change full website logo and its name add this feature also
+Teacher dashboard improvements:
+Teacher dashboard also have profile and settings so it can also change all of its data also can upload profile images and change password and name etc 
+
+Student Dashboard improvements:
+Students can also change all of it's information
+General improvements:
+
+Also make complaint back and more strong and whole websites back and more strong so they these can change in real time in every dashboard do you understand
+Add one more feature in this website that we can download all the data in Excel sheet like students attendance complaints and mess fees all details every page that shows data should have this option

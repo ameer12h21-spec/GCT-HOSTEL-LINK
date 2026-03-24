@@ -3,8 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
-import { Loader2, DollarSign } from "lucide-react";
+import { Loader2, DollarSign, Download } from "lucide-react";
 import { formatPKR, formatDate } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { exportToCSV } from "@/lib/exportUtils";
 
 interface FeeRecord {
   id: string;
@@ -28,11 +30,26 @@ export default function StudentMessFees() {
   const totalPaid = fees.filter((f) => f.status === "paid").reduce((sum, f) => sum + f.amount, 0);
   const totalUnpaid = fees.filter((f) => f.status === "unpaid").reduce((sum, f) => sum + f.amount, 0);
 
+  function handleExport() {
+    const rows = fees.map((f) => ({
+      Month: new Date(f.month + "-01").toLocaleDateString("en-PK", { year: "numeric", month: "long" }),
+      "Amount (PKR)": f.amount,
+      Status: f.status,
+      "Paid At": f.paid_at ? formatDate(f.paid_at) : "",
+    }));
+    exportToCSV(rows, "my_mess_fees");
+  }
+
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Mess Fees</h1>
-        <p className="text-sm text-muted-foreground">Your mess fee payment history</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Mess Fees</h1>
+          <p className="text-sm text-muted-foreground">Your mess fee payment history</p>
+        </div>
+        <Button onClick={handleExport} variant="outline" size="sm">
+          <Download className="w-4 h-4 mr-1" />CSV
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">

@@ -5,8 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Lock, Unlock, Edit2, Check } from "lucide-react";
+import { Loader2, Lock, Unlock, Edit2, Check, Download } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { exportToCSV } from "@/lib/exportUtils";
 
 interface AttendanceRecord {
   id: string;
@@ -61,6 +62,18 @@ export default function AdminAttendance() {
     loadRecords();
   }
 
+  function handleExport() {
+    const rows = records.map((r) => ({
+      Name: r.profiles?.name || "",
+      "Roll Number": r.profiles?.roll_number || "",
+      Hostel: r.profiles?.hostel || "",
+      Date: r.date,
+      Status: r.status,
+      Locked: r.is_locked ? "Yes" : "No",
+    }));
+    exportToCSV(rows, `attendance_${filterDate}`);
+  }
+
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
       present: "bg-green-500/15 text-green-600 border-green-500/30",
@@ -77,8 +90,13 @@ export default function AdminAttendance() {
           <h1 className="text-2xl font-bold text-foreground">Attendance Control</h1>
           <p className="text-sm text-muted-foreground">Admin can override locked attendance records</p>
         </div>
-        <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)}
-          className="border border-input rounded-lg px-3 py-2 text-sm bg-background text-foreground" />
+        <div className="flex items-center gap-2">
+          <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)}
+            className="border border-input rounded-lg px-3 py-2 text-sm bg-background text-foreground" />
+          <Button onClick={handleExport} variant="outline" size="sm">
+            <Download className="w-4 h-4 mr-2" />CSV
+          </Button>
+        </div>
       </div>
 
       <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 mb-6 text-sm text-blue-600">

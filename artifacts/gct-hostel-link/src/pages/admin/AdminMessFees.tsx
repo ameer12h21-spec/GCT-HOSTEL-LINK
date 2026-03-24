@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { Loader2, CheckCircle, XCircle, Search, Edit2, Check } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Search, Edit2, Check, Download } from "lucide-react";
 import { formatPKR, formatDate } from "@/lib/utils";
+import { exportToCSV } from "@/lib/exportUtils";
 
 interface FeeRecord {
   id: string;
@@ -28,6 +29,19 @@ export default function AdminMessFees() {
   const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7));
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editAmount, setEditAmount] = useState("");
+
+  function handleExport() {
+    const rows = filtered.map((f) => ({
+      Name: f.profiles?.name || "",
+      "Roll Number": f.profiles?.roll_number || "",
+      Hostel: f.profiles?.hostel || "",
+      Month: f.month,
+      "Amount (PKR)": f.amount,
+      Status: f.status,
+      "Paid At": f.paid_at || "",
+    }));
+    exportToCSV(rows, `mess_fees_${filterMonth}`);
+  }
 
   async function loadFees() {
     let q = supabase.from("mess_fees").select("*, profiles(name, roll_number, hostel)");
@@ -75,6 +89,9 @@ export default function AdminMessFees() {
         <div className="flex gap-2">
           <input type="month" value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)}
             className="border border-input rounded-lg px-3 py-2 text-sm bg-background text-foreground" />
+          <Button onClick={handleExport} variant="outline" size="sm">
+            <Download className="w-4 h-4 mr-2" />CSV
+          </Button>
         </div>
       </div>
 

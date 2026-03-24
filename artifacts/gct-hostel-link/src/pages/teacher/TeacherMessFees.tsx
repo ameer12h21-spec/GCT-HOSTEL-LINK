@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, Download } from "lucide-react";
 import { formatPKR } from "@/lib/utils";
+import { exportToCSV } from "@/lib/exportUtils";
 
 interface FeeRecord {
   id: string;
@@ -28,6 +30,18 @@ export default function TeacherMessFees() {
 
   const filtered = fees.filter((f) => !search || (f.profiles?.name || "").toLowerCase().includes(search.toLowerCase()) || (f.profiles?.roll_number || "").toLowerCase().includes(search.toLowerCase()));
 
+  function handleExport() {
+    const rows = filtered.map((f) => ({
+      Name: f.profiles?.name || "",
+      "Roll Number": f.profiles?.roll_number || "",
+      Hostel: f.profiles?.hostel || "",
+      Month: f.month,
+      "Amount (PKR)": f.amount,
+      Status: f.status,
+    }));
+    exportToCSV(rows, `mess_fees_${month}`);
+  }
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -35,8 +49,13 @@ export default function TeacherMessFees() {
           <h1 className="text-2xl font-bold text-foreground">Mess Fees (View Only)</h1>
           <p className="text-sm text-muted-foreground">Fee records are managed by Mess Owner</p>
         </div>
-        <input type="month" value={month} onChange={(e) => setMonth(e.target.value)}
-          className="border border-input rounded-lg px-3 py-2 text-sm bg-background text-foreground" />
+        <div className="flex gap-2">
+          <input type="month" value={month} onChange={(e) => setMonth(e.target.value)}
+            className="border border-input rounded-lg px-3 py-2 text-sm bg-background text-foreground" />
+          <Button onClick={handleExport} variant="outline" size="sm">
+            <Download className="w-4 h-4 mr-1" />CSV
+          </Button>
+        </div>
       </div>
 
       <div className="relative mb-4">

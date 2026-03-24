@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
+import { SiteSettingsProvider } from "@/hooks/useSiteSettings";
 
 import LandingPage from "@/pages/public/LandingPage";
 import LoginPage from "@/pages/public/LoginPage";
@@ -22,9 +23,11 @@ import AdminStudents from "@/pages/admin/AdminStudents";
 import AdminAttendance from "@/pages/admin/AdminAttendance";
 import AdminComplaints from "@/pages/admin/AdminComplaints";
 import AdminMessFees from "@/pages/admin/AdminMessFees";
+import AdminElectricity from "@/pages/admin/AdminElectricity";
 import AdminStaff from "@/pages/admin/AdminStaff";
 import AdminAdmissions from "@/pages/admin/AdminAdmissions";
 import AdminTrash from "@/pages/admin/AdminTrash";
+import AdminProfile from "@/pages/admin/AdminProfile";
 
 import StudentLayout from "@/pages/student/StudentLayout";
 import StudentHome from "@/pages/student/StudentHome";
@@ -41,6 +44,7 @@ import TeacherAttendance from "@/pages/teacher/TeacherAttendance";
 import TeacherElectricity from "@/pages/teacher/TeacherElectricity";
 import TeacherComplaints from "@/pages/teacher/TeacherComplaints";
 import TeacherMessFees from "@/pages/teacher/TeacherMessFees";
+import TeacherProfile from "@/pages/teacher/TeacherProfile";
 
 import MessOwnerLayout from "@/pages/mess/MessOwnerLayout";
 import MessOwnerHome from "@/pages/mess/MessOwnerHome";
@@ -77,8 +81,6 @@ function ProtectedRoute({
 }
 
 function AppRoutes() {
-  const { profile } = useAuth();
-
   return (
     <Switch>
       <Route path="/" component={LandingPage} />
@@ -127,6 +129,13 @@ function AppRoutes() {
           </ProtectedRoute>
         )}
       </Route>
+      <Route path="/admin/electricity">
+        {() => (
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminLayout><AdminElectricity /></AdminLayout>
+          </ProtectedRoute>
+        )}
+      </Route>
       <Route path="/admin/staff">
         {() => (
           <ProtectedRoute allowedRoles={["admin"]}>
@@ -145,6 +154,13 @@ function AppRoutes() {
         {() => (
           <ProtectedRoute allowedRoles={["admin"]}>
             <AdminLayout><AdminTrash /></AdminLayout>
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/admin/profile">
+        {() => (
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminLayout><AdminProfile /></AdminLayout>
           </ProtectedRoute>
         )}
       </Route>
@@ -234,6 +250,13 @@ function AppRoutes() {
           </ProtectedRoute>
         )}
       </Route>
+      <Route path="/teacher/profile">
+        {() => (
+          <ProtectedRoute allowedRoles={["teacher"]}>
+            <TeacherLayout><TeacherProfile /></TeacherLayout>
+          </ProtectedRoute>
+        )}
+      </Route>
 
       <Route path="/mess">
         {() => (
@@ -281,12 +304,14 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <ThemeProvider>
-          <AuthProvider>
-            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-              <AppRoutes />
-            </WouterRouter>
-            <Toaster />
-          </AuthProvider>
+          <SiteSettingsProvider>
+            <AuthProvider>
+              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                <AppRoutes />
+              </WouterRouter>
+              <Toaster />
+            </AuthProvider>
+          </SiteSettingsProvider>
         </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>

@@ -3,8 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Zap } from "lucide-react";
+import { Loader2, Zap, Download } from "lucide-react";
 import { formatPKR, formatDate } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { exportToCSV } from "@/lib/exportUtils";
 
 interface ElecBill {
   id: string;
@@ -28,11 +30,26 @@ export default function StudentElectricity() {
   const totalPaid = bills.filter((b) => b.status === "paid").reduce((sum, b) => sum + b.amount, 0);
   const totalUnpaid = bills.filter((b) => b.status === "unpaid").reduce((sum, b) => sum + b.amount, 0);
 
+  function handleExport() {
+    const rows = bills.map((b) => ({
+      Month: new Date(b.month + "-01").toLocaleDateString("en-PK", { year: "numeric", month: "long" }),
+      "Amount (PKR)": b.amount,
+      Status: b.status,
+      "Paid At": b.paid_at ? formatDate(b.paid_at) : "",
+    }));
+    exportToCSV(rows, "my_electricity_bills");
+  }
+
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Electricity Bills</h1>
-        <p className="text-sm text-muted-foreground">Monthly electricity bills set by teacher</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Electricity Bills</h1>
+          <p className="text-sm text-muted-foreground">Monthly electricity bills set by teacher</p>
+        </div>
+        <Button onClick={handleExport} variant="outline" size="sm">
+          <Download className="w-4 h-4 mr-1" />CSV
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">

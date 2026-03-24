@@ -9,8 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/supabase";
-import { Search, Plus, CheckCircle, XCircle, Edit2, Trash2, Loader2, UserCheck, Eye } from "lucide-react";
+import { Search, Plus, CheckCircle, XCircle, Edit2, Trash2, Loader2, UserCheck, Eye, Download } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { exportToCSV } from "@/lib/exportUtils";
 
 export default function AdminStudents() {
   const { toast } = useToast();
@@ -125,6 +126,25 @@ export default function AdminStudents() {
     setActionLoading(null);
   }
 
+  function handleExport() {
+    const rows = filtered.map((s) => ({
+      Name: s.name,
+      "Father Name": s.father_name || "",
+      "Roll Number": s.roll_number || "",
+      Technology: s.technology || "",
+      "Room No": s.room_no || "",
+      Shift: s.shift || "",
+      Hostel: s.hostel || "",
+      Email: s.email,
+      Phone: s.phone || "",
+      "Father Phone": s.father_phone || "",
+      Address: s.address || "",
+      Status: s.status,
+      Joined: formatDate(s.created_at),
+    }));
+    exportToCSV(rows, "students");
+  }
+
   async function logAudit(table: string, recordId: string, field: string, oldVal: string, newVal: string) {
     const { data: { user } } = await supabase.auth.getUser();
     await supabase.from("audit_logs").insert({
@@ -158,9 +178,14 @@ export default function AdminStudents() {
           <h1 className="text-2xl font-bold text-foreground">Students Management</h1>
           <p className="text-sm text-muted-foreground">{students.length} total students</p>
         </div>
-        <Button onClick={() => setShowCreateModal(true)} size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-          <Plus className="w-4 h-4 mr-2" />Add Student
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleExport} variant="outline" size="sm">
+            <Download className="w-4 h-4 mr-2" />Export CSV
+          </Button>
+          <Button onClick={() => setShowCreateModal(true)} size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+            <Plus className="w-4 h-4 mr-2" />Add Student
+          </Button>
+        </div>
       </div>
 
       <Card className="border border-border mb-4">

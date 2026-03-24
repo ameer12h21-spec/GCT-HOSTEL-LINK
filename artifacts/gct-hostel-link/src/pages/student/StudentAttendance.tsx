@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
-import { Loader2, CalendarCheck } from "lucide-react";
+import { Loader2, CalendarCheck, Download } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { exportToCSV } from "@/lib/exportUtils";
 
 interface Attendance {
   id: string;
@@ -32,6 +34,14 @@ export default function StudentAttendance() {
   const absent = records.filter((r) => r.status === "absent").length;
   const leave = records.filter((r) => r.status === "leave").length;
 
+  function handleExport() {
+    const rows = records.map((r) => ({
+      Date: formatDate(r.date),
+      Status: r.status,
+    }));
+    exportToCSV(rows, `my_attendance_${filterMonth}`);
+  }
+
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
       present: "bg-green-500/15 text-green-600 border-green-500/30",
@@ -48,8 +58,13 @@ export default function StudentAttendance() {
           <h1 className="text-2xl font-bold text-foreground">My Attendance</h1>
           <p className="text-sm text-muted-foreground">View-only — Marked by teachers</p>
         </div>
-        <input type="month" value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)}
-          className="border border-input rounded-lg px-3 py-2 text-sm bg-background text-foreground" />
+        <div className="flex gap-2">
+          <input type="month" value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)}
+            className="border border-input rounded-lg px-3 py-2 text-sm bg-background text-foreground" />
+          <Button onClick={handleExport} variant="outline" size="sm">
+            <Download className="w-4 h-4 mr-1" />CSV
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-6">

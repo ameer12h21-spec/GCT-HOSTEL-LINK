@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/supabase";
-import { Loader2, Save, Lock } from "lucide-react";
+import { Loader2, Save, Lock, Download } from "lucide-react";
+import { exportToCSV } from "@/lib/exportUtils";
 
 interface AttendanceEntry {
   studentId: string;
@@ -75,6 +76,18 @@ export default function TeacherAttendance() {
     load();
   }
 
+  function handleExport() {
+    const rows = students.map((s) => ({
+      Name: s.name,
+      "Roll Number": s.roll_number || "",
+      Hostel: s.hostel || "",
+      Date: date,
+      Status: entries[s.id]?.status || "present",
+      Locked: isLocked(s.id) ? "Yes" : "No",
+    }));
+    exportToCSV(rows, `attendance_${date}`);
+  }
+
   const lockedCount = Object.keys(entries).filter((id) => isLocked(id)).length;
 
   return (
@@ -87,6 +100,9 @@ export default function TeacherAttendance() {
         <div className="flex items-center gap-3">
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} max={new Date().toISOString().split("T")[0]}
             className="border border-input rounded-lg px-3 py-2 text-sm bg-background text-foreground" />
+          <Button onClick={handleExport} variant="outline" size="sm">
+            <Download className="w-4 h-4 mr-1" />CSV
+          </Button>
           <Button onClick={saveAttendance} className="bg-gradient-to-r from-blue-600 to-purple-600 text-white" disabled={saving}>
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
             {saving ? "" : "Save"}

@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { signOut } from "@/lib/auth";
 import {
   LayoutDashboard, Users, CalendarCheck, MessageSquare,
@@ -23,9 +24,11 @@ const adminNav: NavItem[] = [
   { href: "/admin/attendance", icon: CalendarCheck, label: "Attendance" },
   { href: "/admin/complaints", icon: MessageSquare, label: "Complaints" },
   { href: "/admin/mess-fees", icon: DollarSign, label: "Mess Fees" },
+  { href: "/admin/electricity", icon: Zap, label: "Electricity Bills" },
   { href: "/admin/staff", icon: UserCog, label: "Teachers & Staff" },
   { href: "/admin/admissions", icon: BookOpen, label: "Admissions" },
   { href: "/admin/trash", icon: Trash2, label: "Trash & Audit" },
+  { href: "/admin/profile", icon: Settings, label: "Profile & Settings" },
 ];
 
 const studentNav: NavItem[] = [
@@ -44,6 +47,7 @@ const teacherNav: NavItem[] = [
   { href: "/teacher/electricity", icon: Zap, label: "Electricity Bills" },
   { href: "/teacher/complaints", icon: MessageSquare, label: "Complaints" },
   { href: "/teacher/mess-fees", icon: DollarSign, label: "Mess Fees" },
+  { href: "/teacher/profile", icon: Settings, label: "Profile & Settings" },
 ];
 
 const messNav: NavItem[] = [
@@ -82,6 +86,7 @@ interface Props {
 export default function DashboardSidebar({ mobileOpen, onMobileClose }: Props) {
   const { profile } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { settings } = useSiteSettings();
   const [location] = useLocation();
 
   if (!profile) return null;
@@ -93,20 +98,27 @@ export default function DashboardSidebar({ mobileOpen, onMobileClose }: Props) {
     window.location.href = "/";
   }
 
+  const isActive = (href: string) => {
+    if (href === "/admin" || href === "/teacher" || href === "/student" || href === "/mess") {
+      return location === href;
+    }
+    return location === href || location.startsWith(href + "/");
+  };
+
   const sidebarContent = (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         <Link href="/" className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
             <Building2 className="w-4 h-4 text-white" />
           </div>
-          <div>
-            <div className="font-bold text-white text-xs leading-tight">GCT Hostel Link</div>
-            <div className="text-xs text-sidebar-foreground/60">TEVTA Taxila</div>
+          <div className="overflow-hidden">
+            <div className="font-bold text-white text-xs leading-tight truncate">{settings.siteName}</div>
+            <div className="text-xs text-sidebar-foreground/60 truncate">{settings.siteSubtitle}</div>
           </div>
         </Link>
         {onMobileClose && (
-          <button onClick={onMobileClose} className="lg:hidden text-sidebar-foreground/60 hover:text-white">
+          <button onClick={onMobileClose} className="lg:hidden text-sidebar-foreground/60 hover:text-white ml-2">
             <X className="w-5 h-5" />
           </button>
         )}
@@ -114,8 +126,11 @@ export default function DashboardSidebar({ mobileOpen, onMobileClose }: Props) {
 
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-sm font-bold">
-            {profile.name.charAt(0).toUpperCase()}
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 overflow-hidden">
+            {profile.profile_photo_url
+              ? <img src={profile.profile_photo_url} alt="Profile" className="w-full h-full object-cover" />
+              : profile.name.charAt(0).toUpperCase()
+            }
           </div>
           <div className="overflow-hidden">
             <div className="text-sm font-semibold text-white truncate">{profile.name}</div>
@@ -127,7 +142,7 @@ export default function DashboardSidebar({ mobileOpen, onMobileClose }: Props) {
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location === item.href;
+          const active = isActive(item.href);
           return (
             <Link
               key={item.href}
@@ -135,7 +150,7 @@ export default function DashboardSidebar({ mobileOpen, onMobileClose }: Props) {
               onClick={onMobileClose}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
-                isActive
+                active
                   ? "bg-sidebar-primary text-white shadow-sm"
                   : "text-sidebar-foreground/70 hover:text-white hover:bg-sidebar-accent"
               )}
