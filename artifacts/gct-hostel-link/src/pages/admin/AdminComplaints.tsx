@@ -75,11 +75,21 @@ export default function AdminComplaints() {
   useEffect(() => { loadComplaints(); }, []);
 
   async function updateStatus(id: string, newStatus: string) {
-    await supabase.from("complaints").update({ status: newStatus }).eq("id", id);
+    const { error: updateErr } = await supabase.from("complaints").update({ status: newStatus }).eq("id", id);
+    if (updateErr) {
+      toast({ title: "Update Failed", description: "Could not update complaint status. Please try again.", variant: "destructive" });
+      return;
+    }
     if (newStatus === "fixed" || newStatus === "cancelled") {
       const comp = complaints.find((c) => c.id === id);
       if (comp) {
-        await supabase.from("deleted_complaints").insert({ ...comp, deleted_at: new Date().toISOString(), deleted_by: "admin" });
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from("deleted_complaints").insert({
+          id: comp.id, student_id: comp.student_id, category: comp.category,
+          subject: comp.subject, description: comp.description, status: newStatus,
+          reply: comp.reply, created_at: comp.created_at,
+          deleted_at: new Date().toISOString(), deleted_by: user?.id || null,
+        });
       }
     }
     toast({ title: "Complaint Updated", description: `Status set to ${newStatus}` });
@@ -88,7 +98,11 @@ export default function AdminComplaints() {
   }
 
   async function saveReply(id: string) {
-    await supabase.from("complaints").update({ reply }).eq("id", id);
+    const { error } = await supabase.from("complaints").update({ reply }).eq("id", id);
+    if (error) {
+      toast({ title: "Save Failed", description: "Could not save reply. Please try again.", variant: "destructive" });
+      return;
+    }
     toast({ title: "Reply Saved" });
     setReply("");
     loadComplaints();

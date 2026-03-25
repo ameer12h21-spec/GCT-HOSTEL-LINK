@@ -68,6 +68,16 @@ export default function AdminElectricity() {
     if (error) {
       toast({ title: "Save Failed", description: "Could not save bill. Please try again.", variant: "destructive" });
     } else {
+      if (bills[student.id]) {
+        await supabase.from("audit_logs").insert({
+          table_name: "electricity_bills",
+          record_id: bills[student.id].id,
+          field_name: "amount",
+          old_value: String(bills[student.id].amount),
+          new_value: String(amt),
+          changed_by: user?.id || null,
+        });
+      }
       toast({ title: "Bill Updated", description: `${student.name}: ${formatPKR(amt)}` });
     }
     setSaving(null);

@@ -88,11 +88,16 @@ export default function AdminStaff() {
   }
 
   async function deleteStaff(s: Profile) {
-    if (!confirm(`Delete ${s.name}?`)) return;
+    if (!confirm(`Delete ${s.name}? Their profile will be archived to trash.`)) return;
     setActionLoading(s.id);
+    const { error: deleteErr } = await supabase.from("profiles").delete().eq("id", s.id);
+    if (deleteErr) {
+      toast({ title: "Delete Failed", description: deleteErr.message, variant: "destructive" });
+      setActionLoading(null);
+      return;
+    }
     await supabase.from("deleted_profiles").insert({ ...s, deleted_at: new Date().toISOString() });
-    await supabase.from("profiles").delete().eq("id", s.id);
-    toast({ title: "Staff Deleted" });
+    toast({ title: "Staff Deleted", description: "Profile archived to trash." });
     loadStaff();
     setActionLoading(null);
   }

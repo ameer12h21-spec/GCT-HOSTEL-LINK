@@ -559,9 +559,22 @@ where not exists (select 1 from public.site_settings);
 -- ============================================================
 -- REALTIME (enables live fee/attendance updates across sessions)
 -- ============================================================
-alter publication supabase_realtime add table public.mess_fees;
-alter publication supabase_realtime add table public.electricity_bills;
-alter publication supabase_realtime add table public.attendance;
+DO $$
+BEGIN
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.mess_fees;
+  EXCEPTION WHEN OTHERS THEN NULL;
+  END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.electricity_bills;
+  EXCEPTION WHEN OTHERS THEN NULL;
+  END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance;
+  EXCEPTION WHEN OTHERS THEN NULL;
+  END;
+END;
+$$;
 
 
 -- ============================================================

@@ -41,7 +41,7 @@ export default function LoginPage() {
         .from("profiles")
         .select("role, status")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError || !profile) {
         await supabase.auth.signOut();
