@@ -121,9 +121,13 @@ export default function TeacherElectricity() {
     let failCount = 0;
     for (const s of students) {
       let err;
-      if (bills[s.id]) {
-        const res = await supabase.from("electricity_bills").update({ amount: amt }).eq("id", bills[s.id].id);
+      const existingBill = bills[s.id];
+      if (existingBill?.id) {
+        const res = await supabase.from("electricity_bills").update({ amount: amt }).eq("id", existingBill.id);
         err = res.error;
+        if (!err) {
+          await supabase.from("audit_logs").insert({ table_name: "electricity_bills", record_id: existingBill.id, field_name: "amount", old_value: String(existingBill.amount), new_value: String(amt), changed_by: user?.id || null });
+        }
       } else {
         const res = await supabase.from("electricity_bills").insert({ student_id: s.id, month, amount: amt, status: "unpaid", set_by: user?.id });
         err = res.error;

@@ -84,9 +84,13 @@ export default function MessOwnerFees() {
     for (const s of students) {
       if (!overrideAll && fees[s.id]) continue;
       let err;
-      if (fees[s.id]?.id) {
-        const res = await supabase.from("mess_fees").update({ amount: amt }).eq("id", fees[s.id].id);
+      const existingFee = fees[s.id];
+      if (existingFee?.id) {
+        const res = await supabase.from("mess_fees").update({ amount: amt }).eq("id", existingFee.id);
         err = res.error;
+        if (!err) {
+          await supabase.from("audit_logs").insert({ table_name: "mess_fees", record_id: existingFee.id, field_name: "amount", old_value: String(existingFee.amount), new_value: String(amt), changed_by: user?.id || null });
+        }
       } else {
         const res = await supabase.from("mess_fees").insert({ student_id: s.id, month, amount: amt, status: "unpaid", set_by: user?.id });
         err = res.error;

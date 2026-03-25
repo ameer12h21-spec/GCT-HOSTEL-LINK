@@ -48,7 +48,9 @@ export default function AdminStudents() {
       .from("profiles")
       .update({ status: "active" })
       .eq("id", id);
-    if (!error) {
+    if (error) {
+      toast({ title: "Approve Failed", description: error.message, variant: "destructive" });
+    } else {
       toast({ title: "Student Approved", description: "Account is now active." });
       await logAudit("profiles", id, "status", "pending", "active");
       loadStudents();
@@ -60,7 +62,9 @@ export default function AdminStudents() {
     const newStatus = currentStatus === "disabled" ? "active" : "disabled";
     setActionLoading(id);
     const { error } = await supabase.from("profiles").update({ status: newStatus }).eq("id", id);
-    if (!error) {
+    if (error) {
+      toast({ title: "Update Failed", description: error.message, variant: "destructive" });
+    } else {
       toast({ title: `Student ${newStatus === "active" ? "Enabled" : "Disabled"}` });
       await logAudit("profiles", id, "status", currentStatus, newStatus);
       loadStudents();

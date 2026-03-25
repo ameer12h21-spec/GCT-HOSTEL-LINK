@@ -71,14 +71,17 @@ artifacts-monorepo/
 ### Confirmed Bug Fixes Applied
 - **`MessOwnerHome.tsx`** — `Number(f.amount)` cast on totalCollected (was string concat)
 - **`StudentAttendance.tsx`** — End-of-month date fixed: uses `< nextMonthStart` instead of `lte -31` (broke February)
-- **`AdminStudents.tsx`** — `deleteStudent`: checks ON DELETE RESTRICT error (code 23503), shows clear message; `createStudent`: saves+restores admin session after `signUp()` to prevent session hijack
+- **`AdminStudents.tsx`** — `deleteStudent`: checks ON DELETE RESTRICT error (code 23503), shows clear message; `createStudent`: saves+restores admin session after `signUp()` to prevent session hijack; `approveStudent`/`disableStudent`: added error toast on DB failure (was silent)
 - **`AdminStaff.tsx`** — `createStaff`: same session hijack fix
 - **`AdminComplaints.tsx`** — Split 2-query pattern (no profile join); visible error banner on load failure
 - **`TeacherComplaints.tsx`** — Same split 2-query pattern
 - **`AdminTrash.tsx`** — Audit logs profile lookup split into 2 queries
 - **`StudentMessFees.tsx`, `StudentElectricity.tsx`** — Added `{ error }` destructuring + console.error
 - **`useAuth.tsx`** — `fetchProfile` uses `maybeSingle()` + error logging (was `.single()` which throws on no row)
-- **Schema `supabase_complete_v3.sql`** — Default `site_settings` row seeded; realtime subscriptions enabled; storage policies expanded to 4 (added admin site-logo folder policies); setup checklist updated
+- **`AdminMessFees.tsx`, `MessOwnerFees.tsx`** — `setGlobalFee`: added per-student audit log when updating existing fee amounts globally (was missing, required for bank-level trail)
+- **`AdminElectricity.tsx`, `TeacherElectricity.tsx`** — `setGlobalBill`: same per-student audit log fix for global bill updates
+- **`AdminElectricity.tsx`, `TeacherElectricity.tsx`** — `setBillForStudent`: audit log added (was missing)
+- **Schema `supabase_complete_v3.sql`** — Default `site_settings` row seeded; realtime subscriptions enabled; storage policies expanded to 4 (added admin site-logo folder policies); setup checklist updated; complaints RLS fixed: students now see ALL complaints (community feed was always empty due to overly restrictive policy); `mess_fees` + `electricity_bills` have `UNIQUE(student_id, month)` constraints (prevents duplicate billing)
 
 ### Roles & Access
 - **Admin**: Full access — manages students, staff, attendance, fees, complaints, trash

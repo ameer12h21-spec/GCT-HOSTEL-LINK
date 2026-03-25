@@ -350,9 +350,11 @@ create trigger complaints_updated_at
 
 alter table public.complaints enable row level security;
 
+-- Students can view ALL complaints so the community feed works (UI shows others as "Anonymous")
 drop policy if exists "Students can view own complaints" on public.complaints;
-create policy "Students can view own complaints" on public.complaints
-  for select using (auth.uid() = student_id);
+drop policy if exists "Students can view all complaints anonymously" on public.complaints;
+create policy "Students can view all complaints anonymously" on public.complaints
+  for select using (public.get_my_role() = 'student');
 
 drop policy if exists "Staff can view all complaints with author" on public.complaints;
 create policy "Staff can view all complaints with author" on public.complaints
