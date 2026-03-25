@@ -50,7 +50,6 @@ export default function AdminAdmissions() {
       return;
     }
     setSaving(true);
-    const { data: { user } } = await supabase.auth.getUser();
     let error;
 
     if (settings?.id) {
@@ -58,7 +57,6 @@ export default function AdminAdmissions() {
         is_open: form.is_open,
         apply_link: form.apply_link.trim(),
         message: form.message.trim(),
-        updated_by: user?.id,
       }).eq("id", settings.id);
       error = res.error;
     } else {
@@ -66,7 +64,6 @@ export default function AdminAdmissions() {
         is_open: form.is_open,
         apply_link: form.apply_link.trim(),
         message: form.message.trim(),
-        updated_by: user?.id,
       });
       error = res.error;
     }
