@@ -75,8 +75,23 @@ export default function AdminStudents() {
   async function deleteStudent(student: Profile) {
     if (!confirm(`Delete ${student.name}? Their profile data will be moved to trash.`)) return;
     setActionLoading(student.id);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Step 1: Backup to trash FIRST — if this fails we abort (no data loss ever)
+    const { error: backupErr } = await supabase.from("deleted_profiles").insert({
+      ...student, deleted_at: new Date().toISOString(), deleted_by: user?.id || null,
+    });
+    if (backupErr) {
+      toast({ title: "Backup Failed", description: "Could not archive to trash — student NOT deleted. " + backupErr.message, variant: "destructive" });
+      setActionLoading(null);
+      return;
+    }
+
+    // Step 2: Delete from active profiles (backup already exists in trash)
     const { error: deleteErr } = await supabase.from("profiles").delete().eq("id", student.id);
     if (deleteErr) {
+      // Rollback: remove the trash entry since delete failed
+      await supabase.from("deleted_profiles").delete().eq("id", student.id);
       if (deleteErr.code === "23503") {
         toast({ title: "Cannot Delete Student", description: "This student has fee or electricity bill records. Remove those first, then delete the student.", variant: "destructive" });
       } else {
@@ -85,7 +100,6 @@ export default function AdminStudents() {
       setActionLoading(null);
       return;
     }
-    await supabase.from("deleted_profiles").insert({ ...student, deleted_at: new Date().toISOString() });
     toast({ title: "Student Deleted", description: "Profile archived to trash. Remove from Supabase Auth manually if needed." });
     loadStudents();
     setActionLoading(null);
@@ -112,7 +126,7 @@ export default function AdminStudents() {
         });
       }
 
-      await supabase.from("profiles").insert({
+      const { error: profileErr } = await supabase.from("profiles").insert({
         id: authData.user.id,
         role: "student",
         status: "active",
@@ -128,6 +142,7 @@ export default function AdminStudents() {
         father_phone: createForm.father_phone,
         address: createForm.address,
       });
+      if (profileErr) throw new Error("Auth user created but profile failed — " + profileErr.message + ". Delete orphan in Supabase Auth > Users.");
 
       toast({ title: "Student Created", description: "Account is now active." });
       setShowCreateModal(false);

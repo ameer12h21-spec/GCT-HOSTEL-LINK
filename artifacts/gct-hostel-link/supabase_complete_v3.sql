@@ -1,5 +1,5 @@
 -- ============================================================
---  GCT Hostel Link — Complete Supabase Schema v3
+--  GCT Hostel Link — Complete Supabase Schema v4
 --  Developer: Ameer Hamza Arshad
 --  Institution: GCT TEVTA Hostel, Taxila
 --  ============================================================
@@ -321,10 +321,22 @@ drop policy if exists "Staff can view all electricity bills" on public.electrici
 create policy "Staff can view all electricity bills" on public.electricity_bills
   for select using (public.get_my_role() in ('teacher', 'admin', 'mess_owner'));
 
+-- Teachers: INSERT + UPDATE only (teachers must NOT delete electricity bill records)
 drop policy if exists "Teachers and admins can manage electricity bills" on public.electricity_bills;
-create policy "Teachers and admins can manage electricity bills" on public.electricity_bills
-  for all using (public.get_my_role() in ('teacher', 'admin'))
-  with check (public.get_my_role() in ('teacher', 'admin'));
+drop policy if exists "Teachers can insert electricity bills" on public.electricity_bills;
+drop policy if exists "Teachers can update electricity bills" on public.electricity_bills;
+drop policy if exists "Admins can manage electricity bills" on public.electricity_bills;
+
+create policy "Teachers can insert electricity bills" on public.electricity_bills
+  for insert with check (public.get_my_role() = 'teacher');
+
+create policy "Teachers can update electricity bills" on public.electricity_bills
+  for update using (public.get_my_role() = 'teacher');
+
+-- Admins: full control including delete
+create policy "Admins can manage electricity bills" on public.electricity_bills
+  for all using (public.get_my_role() = 'admin')
+  with check (public.get_my_role() = 'admin');
 
 
 -- ============================================================

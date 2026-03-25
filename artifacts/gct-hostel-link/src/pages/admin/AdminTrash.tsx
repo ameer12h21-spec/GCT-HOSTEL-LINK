@@ -52,9 +52,11 @@ export default function AdminTrash() {
   const [deletedProfiles, setDeletedProfiles] = useState<DeletedProfile[]>([]);
   const [deletedComplaints, setDeletedComplaints] = useState<DeletedComplaint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   async function loadData() {
     setLoading(true);
+    setFetchError(null);
     if (tab === "audit") {
       const { data: logs, error } = await supabase
         .from("audit_logs")
@@ -62,7 +64,7 @@ export default function AdminTrash() {
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) {
-        console.error("Audit logs fetch error:", error.message);
+        setFetchError("Could not load audit logs: " + error.message);
         setLoading(false);
         return;
       }
@@ -115,7 +117,11 @@ export default function AdminTrash() {
 
   async function purgeProfile(id: string) {
     if (!confirm("Permanently delete this record? This cannot be undone.")) return;
-    await supabase.from("deleted_profiles").delete().eq("id", id);
+    const { error } = await supabase.from("deleted_profiles").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Purge Failed", description: error.message, variant: "destructive" });
+      return;
+    }
     toast({ title: "Record Permanently Deleted" });
     loadData();
   }
@@ -141,7 +147,11 @@ export default function AdminTrash() {
 
   async function purgeComplaint(id: string) {
     if (!confirm("Permanently delete? Cannot be undone.")) return;
-    await supabase.from("deleted_complaints").delete().eq("id", id);
+    const { error } = await supabase.from("deleted_complaints").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Purge Failed", description: error.message, variant: "destructive" });
+      return;
+    }
     toast({ title: "Permanently Deleted" });
     loadData();
   }
@@ -181,6 +191,12 @@ export default function AdminTrash() {
           </Button>
         )}
       </div>
+
+      {fetchError && (
+        <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4 mb-4 text-sm text-destructive">
+          {fetchError}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>

@@ -61,7 +61,7 @@ export default function AdminStaff() {
         });
       }
 
-      await supabase.from("profiles").insert({
+      const { error: profileErr } = await supabase.from("profiles").insert({
         id: authData.user.id,
         role: form.role,
         email: form.email,
@@ -69,6 +69,7 @@ export default function AdminStaff() {
         secret_key: secretKey,
         status: "active",
       });
+      if (profileErr) throw new Error("Auth user created but profile failed — " + profileErr.message + ". Delete orphan in Supabase Auth > Users.");
 
       toast({ title: "Staff Created", description: `Secret key: ${secretKey}` });
       setShowModal(false);
@@ -98,13 +99,27 @@ export default function AdminStaff() {
   async function deleteStaff(s: Profile) {
     if (!confirm(`Delete ${s.name}? Their profile will be archived to trash.`)) return;
     setActionLoading(s.id);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Step 1: Backup to trash FIRST — if this fails we abort (no data loss ever)
+    const { error: backupErr } = await supabase.from("deleted_profiles").insert({
+      ...s, deleted_at: new Date().toISOString(), deleted_by: user?.id || null,
+    });
+    if (backupErr) {
+      toast({ title: "Backup Failed", description: "Could not archive to trash — staff NOT deleted. " + backupErr.message, variant: "destructive" });
+      setActionLoading(null);
+      return;
+    }
+
+    // Step 2: Delete from active profiles (backup already exists in trash)
     const { error: deleteErr } = await supabase.from("profiles").delete().eq("id", s.id);
     if (deleteErr) {
+      // Rollback: remove the trash entry since delete failed
+      await supabase.from("deleted_profiles").delete().eq("id", s.id);
       toast({ title: "Delete Failed", description: deleteErr.message, variant: "destructive" });
       setActionLoading(null);
       return;
     }
-    await supabase.from("deleted_profiles").insert({ ...s, deleted_at: new Date().toISOString() });
     toast({ title: "Staff Deleted", description: "Profile archived to trash." });
     loadStaff();
     setActionLoading(null);
