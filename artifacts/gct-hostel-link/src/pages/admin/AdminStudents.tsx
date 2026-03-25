@@ -71,16 +71,18 @@ export default function AdminStudents() {
   async function deleteStudent(student: Profile) {
     if (!confirm(`Delete ${student.name}? Their profile data will be moved to trash.`)) return;
     setActionLoading(student.id);
-    const { error: trashErr } = await supabase.from("deleted_profiles").insert({
-      ...student, deleted_at: new Date().toISOString()
-    });
-    if (trashErr) {
-      toast({ title: "Error", description: trashErr.message, variant: "destructive" });
+    const { error: deleteErr } = await supabase.from("profiles").delete().eq("id", student.id);
+    if (deleteErr) {
+      if (deleteErr.code === "23503") {
+        toast({ title: "Cannot Delete Student", description: "This student has fee or electricity bill records. Remove those first, then delete the student.", variant: "destructive" });
+      } else {
+        toast({ title: "Delete Failed", description: deleteErr.message, variant: "destructive" });
+      }
       setActionLoading(null);
       return;
     }
-    await supabase.from("profiles").delete().eq("id", student.id);
-    toast({ title: "Student Deleted", description: "Profile moved to trash. Remove from Supabase Auth manually if needed." });
+    await supabase.from("deleted_profiles").insert({ ...student, deleted_at: new Date().toISOString() });
+    toast({ title: "Student Deleted", description: "Profile archived to trash. Remove from Supabase Auth manually if needed." });
     loadStudents();
     setActionLoading(null);
   }
@@ -92,12 +94,19 @@ export default function AdminStudents() {
     }
     setActionLoading("create");
     try {
+      const { data: { session: adminSession } } = await supabase.auth.getSession();
       const { data: authData, error: authErr } = await supabase.auth.signUp({
         email: createForm.email,
         password: createForm.password,
       });
       if (authErr) throw authErr;
       if (!authData.user) throw new Error("Failed to create auth user");
+      if (adminSession) {
+        await supabase.auth.setSession({
+          access_token: adminSession.access_token,
+          refresh_token: adminSession.refresh_token,
+        });
+      }
 
       await supabase.from("profiles").insert({
         id: authData.user.id,

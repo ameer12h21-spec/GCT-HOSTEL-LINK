@@ -22,12 +22,20 @@ export default function StudentAttendance() {
 
   useEffect(() => {
     if (!profile) return;
+    const [year, mon] = filterMonth.split("-").map(Number);
+    const nextMonthStart = mon === 12
+      ? `${year + 1}-01-01`
+      : `${year}-${String(mon + 1).padStart(2, "0")}-01`;
     supabase.from("attendance").select("id, date, status")
       .eq("student_id", profile.id)
       .gte("date", `${filterMonth}-01`)
-      .lte("date", `${filterMonth}-31`)
+      .lt("date", nextMonthStart)
       .order("date", { ascending: false })
-      .then(({ data }) => { setRecords(data || []); setLoading(false); });
+      .then(({ data, error }) => {
+        if (error) console.error("Attendance fetch error:", error.message);
+        setRecords(data || []);
+        setLoading(false);
+      });
   }, [profile, filterMonth]);
 
   const present = records.filter((r) => r.status === "present").length;

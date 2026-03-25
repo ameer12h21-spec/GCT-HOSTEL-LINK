@@ -29,9 +29,28 @@ export default function TeacherComplaints() {
   const [reply, setReply] = useState("");
 
   async function load() {
-    const { data } = await supabase.from("complaints").select("*, profiles(name, roll_number)")
-      .not("status", "in", '("fixed","cancelled")').order("created_at", { ascending: false });
-    setComplaints(data || []);
+    const { data: rows, error } = await supabase.from("complaints")
+      .select("id, student_id, category, subject, description, status, reply, created_at")
+      .not("status", "in", '("fixed","cancelled")')
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error("Complaints fetch error:", error.message);
+      setLoading(false);
+      return;
+    }
+    const list = rows || [];
+    const studentIds = [...new Set(list.map((c) => c.student_id).filter(Boolean))];
+    let profileMap: Record<string, { name: string; roll_number: string }> = {};
+    if (studentIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, name, roll_number")
+        .in("id", studentIds);
+      for (const p of profiles || []) {
+        profileMap[p.id] = { name: p.name, roll_number: p.roll_number };
+      }
+    }
+    setComplaints(list.map((c) => ({ ...c, profiles: profileMap[c.student_id] })));
     setLoading(false);
   }
 

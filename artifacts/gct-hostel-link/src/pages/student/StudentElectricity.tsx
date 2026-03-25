@@ -24,8 +24,8 @@ export default function StudentElectricity() {
   useEffect(() => {
     if (!profile) return;
     supabase.from("electricity_bills").select("*").eq("student_id", profile.id).order("month", { ascending: false })
-      .then(({ data }) => {
-        // Cast numeric fields — Supabase returns numeric as string
+      .then(({ data, error }) => {
+        if (error) console.error("Electricity bills fetch error:", error.message);
         setBills((data || []).map((b) => ({ ...b, amount: Number(b.amount) })));
         setLoading(false);
       });

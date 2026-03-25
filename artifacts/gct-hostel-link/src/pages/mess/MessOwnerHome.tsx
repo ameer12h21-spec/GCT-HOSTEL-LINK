@@ -22,7 +22,7 @@ export default function MessOwnerHome() {
         totalStudents: studentsRes.count || 0,
         paid: paid.length,
         unpaid: fees.filter((f) => f.status === "unpaid").length,
-        totalCollected: paid.reduce((sum, f) => sum + f.amount, 0),
+        totalCollected: paid.reduce((sum, f) => sum + Number(f.amount), 0),
       });
     }
     load();

@@ -24,8 +24,8 @@ export default function StudentMessFees() {
   useEffect(() => {
     if (!profile) return;
     supabase.from("mess_fees").select("*").eq("student_id", profile.id).order("month", { ascending: false })
-      .then(({ data }) => {
-        // Cast numeric fields — Supabase returns numeric as string
+      .then(({ data, error }) => {
+        if (error) console.error("Mess fees fetch error:", error.message);
         setFees((data || []).map((f) => ({ ...f, amount: Number(f.amount) })));
         setLoading(false);
       });

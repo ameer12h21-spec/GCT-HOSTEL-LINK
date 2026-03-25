@@ -56,8 +56,27 @@ export default function AdminTrash() {
   async function loadData() {
     setLoading(true);
     if (tab === "audit") {
-      const { data } = await supabase.from("audit_logs").select("*, profiles(name)").order("created_at", { ascending: false }).limit(200);
-      setAuditLogs(data || []);
+      const { data: logs, error } = await supabase
+        .from("audit_logs")
+        .select("id, table_name, record_id, field_name, old_value, new_value, changed_by, created_at")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) {
+        console.error("Audit logs fetch error:", error.message);
+        setLoading(false);
+        return;
+      }
+      const list = logs || [];
+      const userIds = [...new Set(list.map((l) => l.changed_by).filter(Boolean))];
+      let profileMap: Record<string, { name: string }> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, name")
+          .in("id", userIds);
+        for (const p of profiles || []) profileMap[p.id] = { name: p.name };
+      }
+      setAuditLogs(list.map((l) => ({ ...l, profiles: profileMap[l.changed_by] })));
     } else if (tab === "deleted_users") {
       const { data } = await supabase.from("deleted_profiles").select("*").order("deleted_at", { ascending: false });
       setDeletedProfiles(data || []);

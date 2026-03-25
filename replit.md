@@ -52,8 +52,9 @@ artifacts-monorepo/
 ### Supabase Configuration
 - **URL**: `VITE_SUPABASE_URL` env var
 - **Anon Key**: `VITE_SUPABASE_ANON_KEY` env var
-- **SQL Schema**: `artifacts/gct-hostel-link/supabase_schema.sql`
+- **SQL Schema**: `artifacts/gct-hostel-link/supabase_complete_v3.sql` (DEFINITIVE — run only this file)
 - **Storage bucket**: `profile-photos` (max 3MB, any image format)
+- **Realtime**: enabled for `mess_fees`, `electricity_bills`, `attendance`
 
 ### Database Tables
 1. `profiles` — All users (admin, teacher, mess_owner, student)
@@ -65,6 +66,19 @@ artifacts-monorepo/
 7. `deleted_complaints` — Soft-deleted/resolved complaints
 8. `audit_logs` — Admin audit trail
 9. `admission_settings` — Toggle admissions open/closed
+10. `site_settings` — Branding/customization (logo, colors, hostel name) — default row seeded
+
+### Confirmed Bug Fixes Applied
+- **`MessOwnerHome.tsx`** — `Number(f.amount)` cast on totalCollected (was string concat)
+- **`StudentAttendance.tsx`** — End-of-month date fixed: uses `< nextMonthStart` instead of `lte -31` (broke February)
+- **`AdminStudents.tsx`** — `deleteStudent`: checks ON DELETE RESTRICT error (code 23503), shows clear message; `createStudent`: saves+restores admin session after `signUp()` to prevent session hijack
+- **`AdminStaff.tsx`** — `createStaff`: same session hijack fix
+- **`AdminComplaints.tsx`** — Split 2-query pattern (no profile join); visible error banner on load failure
+- **`TeacherComplaints.tsx`** — Same split 2-query pattern
+- **`AdminTrash.tsx`** — Audit logs profile lookup split into 2 queries
+- **`StudentMessFees.tsx`, `StudentElectricity.tsx`** — Added `{ error }` destructuring + console.error
+- **`useAuth.tsx`** — `fetchProfile` uses `maybeSingle()` + error logging (was `.single()` which throws on no row)
+- **Schema `supabase_complete_v3.sql`** — Default `site_settings` row seeded; realtime subscriptions enabled; storage policies expanded to 4 (added admin site-logo folder policies); setup checklist updated
 
 ### Roles & Access
 - **Admin**: Full access — manages students, staff, attendance, fees, complaints, trash

@@ -47,12 +47,19 @@ export default function AdminStaff() {
       const roleCount = staff.filter((s) => s.role === form.role).length;
       const secretKey = generateSecretKey(form.role, roleCount);
 
+      const { data: { session: adminSession } } = await supabase.auth.getSession();
       const { data: authData, error: authErr } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
       });
       if (authErr) throw authErr;
       if (!authData.user) throw new Error("Failed to create user");
+      if (adminSession) {
+        await supabase.auth.setSession({
+          access_token: adminSession.access_token,
+          refresh_token: adminSession.refresh_token,
+        });
+      }
 
       await supabase.from("profiles").insert({
         id: authData.user.id,

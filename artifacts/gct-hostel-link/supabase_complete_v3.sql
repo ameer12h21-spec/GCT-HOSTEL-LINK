@@ -549,12 +549,19 @@ grant select on public.site_settings to anon;
 
 
 -- ============================================================
--- REALTIME (run these to enable live updates)
--- Or: Dashboard → Database → Replication → enable these tables
+-- DEFAULT ROW: site_settings (must exist for app to read/update)
 -- ============================================================
--- alter publication supabase_realtime add table public.mess_fees;
--- alter publication supabase_realtime add table public.electricity_bills;
--- alter publication supabase_realtime add table public.attendance;
+insert into public.site_settings (settings)
+select '{}'::jsonb
+where not exists (select 1 from public.site_settings);
+
+
+-- ============================================================
+-- REALTIME (enables live fee/attendance updates across sessions)
+-- ============================================================
+alter publication supabase_realtime add table public.mess_fees;
+alter publication supabase_realtime add table public.electricity_bills;
+alter publication supabase_realtime add table public.attendance;
 
 
 -- ============================================================
@@ -567,11 +574,23 @@ grant select on public.site_settings to anon;
 --   MIME types: image/*
 --
 -- After creating the bucket, add these Storage policies:
---   Policy 1 — SELECT (public read):
+--
+--   Policy 1 — SELECT (public read, all files):
 --     bucket_id = 'profile-photos'
---   Policy 2 — INSERT (authenticated users upload to own folder):
+--
+--   Policy 2 — INSERT (authenticated users upload to own UUID folder):
 --     bucket_id = 'profile-photos'
 --     AND auth.uid()::text = (storage.foldername(name))[1]
+--
+--   Policy 3 — INSERT for admins uploading site logo (site-logo/ folder):
+--     bucket_id = 'profile-photos'
+--     AND (storage.foldername(name))[1] = 'site-logo'
+--     AND (SELECT public.get_my_role()) = 'admin'
+--
+--   Policy 4 — DELETE for admins (allows logo replacement):
+--     bucket_id = 'profile-photos'
+--     AND (storage.foldername(name))[1] = 'site-logo'
+--     AND (SELECT public.get_my_role()) = 'admin'
 
 
 -- ============================================================
@@ -588,10 +607,10 @@ grant select on public.site_settings to anon;
 -- ============================================================
 -- SETUP CHECKLIST
 -- ============================================================
--- [1] ✅ Run THIS file in SQL Editor
+-- [1] ✅ Run THIS file in SQL Editor (realtime now enabled automatically)
 -- [2] Auth → Settings → Disable "Confirm email"
 -- [3] Storage → New Bucket "profile-photos" (public, 3MB, image/*)
--- [4] Database → Replication → enable mess_fees, electricity_bills, attendance
+-- [4] Storage → Add 4 policies (see STORAGE BUCKET SETUP section above)
 -- [5] Sign up at /signup with your admin email
 -- [6] Run the First Admin Setup query above
 -- [7] Log in as admin and you are ready

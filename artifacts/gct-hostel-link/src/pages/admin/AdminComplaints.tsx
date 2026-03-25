@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { Loader2, CheckCircle, XCircle, Eye, Download } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Eye, Download, AlertCircle } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
 import { exportToCSV } from "@/lib/exportUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -26,6 +26,7 @@ export default function AdminComplaints() {
   const { toast } = useToast();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Complaint | null>(null);
   const [reply, setReply] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -45,11 +46,29 @@ export default function AdminComplaints() {
   }
 
   async function loadComplaints() {
-    const { data } = await supabase
+    setFetchError(null);
+    const { data: rows, error } = await supabase
       .from("complaints")
-      .select("*, profiles(name, roll_number)")
+      .select("id, student_id, category, subject, description, status, reply, created_at")
       .order("created_at", { ascending: false });
-    setComplaints(data || []);
+    if (error) {
+      setFetchError("Failed to load complaints: " + error.message);
+      setLoading(false);
+      return;
+    }
+    const list = rows || [];
+    const studentIds = [...new Set(list.map((c) => c.student_id).filter(Boolean))];
+    let profileMap: Record<string, { name: string; roll_number: string }> = {};
+    if (studentIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, name, roll_number")
+        .in("id", studentIds);
+      for (const p of profiles || []) {
+        profileMap[p.id] = { name: p.name, roll_number: p.roll_number };
+      }
+    }
+    setComplaints(list.map((c) => ({ ...c, profiles: profileMap[c.student_id] })));
     setLoading(false);
   }
 
@@ -107,6 +126,12 @@ export default function AdminComplaints() {
           </Button>
         </div>
       </div>
+
+      {fetchError && (
+        <div className="mb-4 bg-destructive/10 border border-destructive/30 rounded-xl p-3 flex items-center gap-2 text-sm text-destructive">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />{fetchError}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
