@@ -84,7 +84,7 @@ export default function Footer() {
             © 2026 Ameer Hamza Arshad — All Rights Reserved
           </p>
           <p className="text-sm text-sidebar-foreground/50">
-            {settings.siteName} – {settings.siteSubtitle}
+            Developed by <span className="text-sidebar-foreground/70 font-medium">Smart Web Solutions</span>
           </p>
         </div>
       </div>
