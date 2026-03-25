@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/supabase";
 import { Loader2, Save, Lock, Download } from "lucide-react";
 import { exportToCSV } from "@/lib/exportUtils";
+import { NetworkWarningBanner } from "@/components/NetworkIndicator";
 
 interface AttendanceEntry {
   studentId: string;
@@ -109,6 +110,8 @@ export default function TeacherAttendance() {
           </Button>
         </div>
       </div>
+
+      <NetworkWarningBanner />
 
       {lockedCount > 0 && (
         <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 mb-4 text-sm text-orange-600 flex items-center gap-2">

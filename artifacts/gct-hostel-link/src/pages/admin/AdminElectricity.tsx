@@ -11,6 +11,7 @@ import type { Profile } from "@/lib/supabase";
 import { Loader2, Save, Zap, CheckCircle, XCircle, Download, AlertTriangle } from "lucide-react";
 import { formatPKR } from "@/lib/utils";
 import { exportToCSV } from "@/lib/exportUtils";
+import { NetworkWarningBanner } from "@/components/NetworkIndicator";
 
 interface Bill {
   id: string;
@@ -194,6 +195,8 @@ export default function AdminElectricity() {
         <span className="text-green-600">Paid: <strong>{paidCount}</strong></span>
         <span className="text-red-600">Unpaid/Not Set: <strong>{unpaidCount}</strong></span>
       </div>
+
+      <NetworkWarningBanner />
 
       {loading ? (
         <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>

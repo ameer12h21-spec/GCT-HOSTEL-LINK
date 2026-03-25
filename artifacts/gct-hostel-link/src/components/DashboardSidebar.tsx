@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { signOut } from "@/lib/auth";
+import { SidebarNetworkIndicator } from "@/components/NetworkIndicator";
 import {
   LayoutDashboard, Users, CalendarCheck, MessageSquare,
   DollarSign, UserCog, BookOpen, Trash2, LogOut,
@@ -161,6 +162,10 @@ export default function DashboardSidebar({ mobileOpen, onMobileClose }: Props) {
           );
         })}
       </nav>
+
+      <div className="px-3 pb-2">
+        <SidebarNetworkIndicator />
+      </div>
 
       <div className="p-3 border-t border-sidebar-border space-y-1">
         <button

@@ -12,6 +12,7 @@ import type { Profile } from "@/lib/supabase";
 import { Loader2, CheckCircle, XCircle, Search, DollarSign, Edit2, Download, AlertTriangle, Save } from "lucide-react";
 import { formatPKR, formatDate } from "@/lib/utils";
 import { exportToCSV } from "@/lib/exportUtils";
+import { NetworkWarningBanner } from "@/components/NetworkIndicator";
 
 interface FeeRecord {
   id?: string;
@@ -224,6 +225,8 @@ export default function AdminMessFees() {
         <span className="text-green-600">Paid: <strong>{filtered.filter(s => fees[s.id]?.status === "paid").length}</strong></span>
         <span className="text-red-600">Unpaid: <strong>{filtered.filter(s => fees[s.id]?.status !== "paid").length}</strong></span>
       </div>
+
+      <NetworkWarningBanner />
 
       {loading ? (
         <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
