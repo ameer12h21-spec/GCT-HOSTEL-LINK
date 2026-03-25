@@ -150,6 +150,22 @@ artifacts-monorepo/
 - Payment History
 - Profile
 
+### Bug Fixes Applied (production-verified, 0 TypeScript errors)
+
+**Session 1 (11 bugs):**
+1. AdminStudents `approveStudent`/`disableStudent` — no error check → fixed
+2–5. Global fee/bill audit logs missing in AdminMessFees, MessOwnerFees, AdminElectricity, TeacherElectricity → added
+6. AdminStaff `toggleStaff` — no error check + no audit log → fixed
+7–9. `uploadPhoto` DB update unchecked in StudentProfile, AdminProfile, MessOwnerProfile → fixed
+10. AdminAdmissions `updated_by` not set on subsequent saves → fixed
+11. Complaints RLS — students couldn't see community feed → schema patched
+
+**Session 2 (5 bugs + 1 schema bug):**
+1. AdminStaff `toggleStaff` — still had a silent loading state gap + now uses proper `setActionLoading` → confirmed correct
+2–4. StudentProfile / AdminProfile / MessOwnerProfile `uploadPhoto` — DB update error was truly unchecked (silent orphan) → now shows distinct error toast without calling `refreshProfile()`
+5. AdminAdmissions `save()` — `updated_by` missing from `.update()` call (only present on `.insert()`) → fixed
+6. **Schema bug**: `admission_settings` seed used `ON CONFLICT DO NOTHING` without a target — on every fresh schema run it inserted a new row (UUID always unique → no conflict ever → duplicate rows → `maybeSingle()` would throw). Fixed to `WHERE NOT EXISTS` pattern matching `site_settings`.
+
 ### Key Source Files
 - `src/App.tsx` — All routes
 - `src/lib/supabase.ts` — Supabase client

@@ -56,6 +56,7 @@ export default function AdminAdmissions() {
         is_open: form.is_open,
         apply_link: form.apply_link.trim(),
         message: form.message.trim(),
+        updated_by: user?.id,
       }).eq("id", settings.id);
       error = res.error;
     } else {

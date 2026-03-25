@@ -82,9 +82,17 @@ export default function AdminStaff() {
 
   async function toggleStaff(id: string, currentStatus: string) {
     const newStatus = currentStatus === "disabled" ? "active" : "disabled";
-    await supabase.from("profiles").update({ status: newStatus }).eq("id", id);
-    toast({ title: `Staff ${newStatus === "active" ? "Enabled" : "Disabled"}` });
-    loadStaff();
+    setActionLoading(id);
+    const { error } = await supabase.from("profiles").update({ status: newStatus }).eq("id", id);
+    if (error) {
+      toast({ title: "Update Failed", description: error.message, variant: "destructive" });
+    } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from("audit_logs").insert({ table_name: "profiles", record_id: id, field_name: "status", old_value: currentStatus, new_value: newStatus, changed_by: user?.id || null });
+      toast({ title: `Staff ${newStatus === "active" ? "Enabled" : "Disabled"}` });
+      loadStaff();
+    }
+    setActionLoading(null);
   }
 
   async function deleteStaff(s: Profile) {

@@ -78,9 +78,13 @@ export default function AdminProfile() {
       return;
     }
     const { data } = supabase.storage.from("profile-photos").getPublicUrl(path);
-    await supabase.from("profiles").update({ profile_photo_url: data.publicUrl }).eq("id", profile!.id);
-    toast({ title: "Photo Updated" });
-    refreshProfile();
+    const { error: dbError } = await supabase.from("profiles").update({ profile_photo_url: data.publicUrl }).eq("id", profile!.id);
+    if (dbError) {
+      toast({ title: "Profile Update Failed", description: "Photo uploaded but could not save to profile. " + dbError.message, variant: "destructive" });
+    } else {
+      toast({ title: "Photo Updated" });
+      refreshProfile();
+    }
     setUploading(false);
   }
 

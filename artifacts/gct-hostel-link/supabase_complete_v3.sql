@@ -459,10 +459,10 @@ drop policy if exists "Admins can manage admission settings" on public.admission
 create policy "Admins can manage admission settings" on public.admission_settings
   for all using (public.get_my_role() = 'admin');
 
--- Ensure there is always exactly one settings row
+-- Ensure there is always exactly one settings row (WHERE NOT EXISTS prevents duplicates on re-run)
 insert into public.admission_settings (is_open, apply_link, message)
-values (false, '', 'Admissions are currently closed. Check back soon for updates.')
-on conflict do nothing;
+select false, '', 'Admissions are currently closed. Check back soon for updates.'
+where not exists (select 1 from public.admission_settings);
 
 
 -- ============================================================
