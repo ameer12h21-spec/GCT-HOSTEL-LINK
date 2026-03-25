@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Search, Download, RefreshCw } from "lucide-react";
+import { Loader2, Search, Download, RefreshCw, AlertCircle } from "lucide-react";
 import { formatPKR, formatDate } from "@/lib/utils";
 import { exportToCSV } from "@/lib/exportUtils";
 import { NetworkWarningBanner } from "@/components/NetworkIndicator";
@@ -16,7 +16,7 @@ interface PaymentRecord {
   amount: number;
   status: string;
   paid_at?: string;
-  profiles?: { name: string; roll_number: string; hostel: string };
+  profiles?: { name: string; roll_number: string; hostel: string } | null;
 }
 
 export default function MessOwnerPaymentHistory() {
@@ -26,44 +26,73 @@ export default function MessOwnerPaymentHistory() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [search, setSearch] = useState("");
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [queryError, setQueryError] = useState<string | null>(null);
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     else setRefreshing(true);
+    setQueryError(null);
 
-    const { data } = await supabase
+    // Step 1: fetch paid fees for the month (no join — avoids RLS recursion on profiles)
+    const { data: feesData, error: feesError } = await supabase
       .from("mess_fees")
-      .select("*, profiles(name, roll_number, hostel)")
+      .select("id, student_id, month, amount, status, paid_at")
       .eq("month", month)
       .eq("status", "paid")
-      .order("paid_at", { ascending: false });
+      .order("paid_at", { ascending: false, nullsFirst: false });
 
-    // Fix: Supabase returns numeric as string — cast to Number
-    const fixed = (data || []).map((r) => ({ ...r, amount: Number(r.amount) }));
-    setRecords(fixed);
+    if (feesError) {
+      setQueryError(feesError.message);
+      setRecords([]);
+      if (!silent) setLoading(false);
+      else setRefreshing(false);
+      return;
+    }
+
+    const fees = feesData || [];
+
+    if (fees.length === 0) {
+      setRecords([]);
+      setLastUpdated(new Date());
+      if (!silent) setLoading(false);
+      else setRefreshing(false);
+      return;
+    }
+
+    // Step 2: fetch profiles separately for the student IDs
+    const studentIds = fees.map((f) => f.student_id);
+    const { data: profilesData } = await supabase
+      .from("profiles")
+      .select("id, name, roll_number, hostel")
+      .in("id", studentIds);
+
+    const profileMap: Record<string, { name: string; roll_number: string; hostel: string }> = {};
+    (profilesData || []).forEach((p) => { profileMap[p.id] = p; });
+
+    // Step 3: merge — amount cast to Number so formatPKR works correctly
+    const merged: PaymentRecord[] = fees.map((f) => ({
+      ...f,
+      amount: Number(f.amount),
+      profiles: profileMap[f.student_id] || null,
+    }));
+
+    setRecords(merged);
     setLastUpdated(new Date());
     if (!silent) setLoading(false);
     else setRefreshing(false);
   }, [month]);
 
-  // Load on mount and month change
   useEffect(() => { load(); }, [load]);
 
-  // Auto-refresh every 30 seconds for real-time feel
   useEffect(() => {
     const timer = setInterval(() => load(true), 30000);
     return () => clearInterval(timer);
   }, [load]);
 
-  // Subscribe to real-time changes on mess_fees
   useEffect(() => {
     const channel = supabase
       .channel(`payment_history_${month}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "mess_fees" },
-        () => { load(true); }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "mess_fees" }, () => { load(true); })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [month, load]);
@@ -116,8 +145,14 @@ export default function MessOwnerPaymentHistory() {
         </div>
       </div>
 
-      {/* Network Warning */}
       <NetworkWarningBanner />
+
+      {queryError && (
+        <div className="flex items-center gap-2 text-sm text-red-600 bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-4">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>Could not load payments: {queryError}</span>
+        </div>
+      )}
 
       <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 mb-6 flex items-center justify-between">
         <span className="text-sm font-medium text-foreground">Total Collected ({filtered.length} payments)</span>
@@ -140,11 +175,11 @@ export default function MessOwnerPaymentHistory() {
               <CardContent className="p-3 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                    {r.profiles?.name?.charAt(0)}
+                    {(r.profiles?.name || "?").charAt(0)}
                   </div>
                   <div className="min-w-0">
-                    <div className="text-sm font-medium text-foreground truncate">{r.profiles?.name}</div>
-                    <div className="text-xs text-muted-foreground">{r.profiles?.roll_number} • {r.profiles?.hostel}</div>
+                    <div className="text-sm font-medium text-foreground truncate">{r.profiles?.name || "Unknown Student"}</div>
+                    <div className="text-xs text-muted-foreground">{r.profiles?.roll_number || "—"} • {r.profiles?.hostel || "—"}</div>
                     {r.paid_at && <div className="text-xs text-muted-foreground">Paid: {formatDate(r.paid_at)}</div>}
                   </div>
                 </div>
