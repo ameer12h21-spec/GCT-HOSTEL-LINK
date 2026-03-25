@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Users, CalendarCheck, MessageSquare,
   DollarSign, UserCog, BookOpen, Trash2, LogOut,
   Sun, Moon, User, Zap, Building2, X,
-  CreditCard, History, Settings
+  CreditCard, History, Settings, Paintbrush
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +28,7 @@ const adminNav: NavItem[] = [
   { href: "/admin/electricity", icon: Zap, label: "Electricity Bills" },
   { href: "/admin/staff", icon: UserCog, label: "Teachers & Staff" },
   { href: "/admin/admissions", icon: BookOpen, label: "Admissions" },
+  { href: "/admin/site-settings", icon: Paintbrush, label: "Site Design" },
   { href: "/admin/trash", icon: Trash2, label: "Trash & Audit" },
   { href: "/admin/profile", icon: Settings, label: "Profile & Settings" },
 ];
@@ -110,8 +111,13 @@ export default function DashboardSidebar({ mobileOpen, onMobileClose }: Props) {
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         <Link href="/" className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-            <Building2 className="w-4 h-4 text-white" />
+          <div
+            className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden"
+            style={{ background: `linear-gradient(135deg, var(--cta-grad-from, #2563eb), var(--cta-grad-to, #7c3aed))` }}
+          >
+            {settings.logoUrl
+              ? <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+              : <Building2 className="w-4 h-4 text-white" />}
           </div>
           <div className="overflow-hidden">
             <div className="font-bold text-white text-xs leading-tight truncate">{settings.siteName}</div>

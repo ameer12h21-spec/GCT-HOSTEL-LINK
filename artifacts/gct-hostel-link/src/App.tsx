@@ -28,6 +28,7 @@ import AdminStaff from "@/pages/admin/AdminStaff";
 import AdminAdmissions from "@/pages/admin/AdminAdmissions";
 import AdminTrash from "@/pages/admin/AdminTrash";
 import AdminProfile from "@/pages/admin/AdminProfile";
+import AdminSiteSettings from "@/pages/admin/AdminSiteSettings";
 
 import StudentLayout from "@/pages/student/StudentLayout";
 import StudentHome from "@/pages/student/StudentHome";
@@ -147,6 +148,13 @@ function AppRoutes() {
         {() => (
           <ProtectedRoute allowedRoles={["admin"]}>
             <AdminLayout><AdminAdmissions /></AdminLayout>
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/admin/site-settings">
+        {() => (
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminLayout><AdminSiteSettings /></AdminLayout>
           </ProtectedRoute>
         )}
       </Route>

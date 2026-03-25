@@ -464,6 +464,36 @@ on conflict do nothing;
 
 
 -- ============================================================
+-- TABLE: site_settings
+-- Single-row table storing all website customization as JSONB.
+-- Readable by everyone (public landing page uses it).
+-- Only admin can write.
+-- ============================================================
+create table if not exists public.site_settings (
+  id          uuid    primary key default gen_random_uuid(),
+  settings    jsonb   not null default '{}',
+  updated_at  timestamptz not null default now(),
+  updated_by  uuid    references public.profiles(id) on delete set null
+);
+
+drop trigger if exists site_settings_updated_at on public.site_settings;
+create trigger site_settings_updated_at
+  before update on public.site_settings
+  for each row execute procedure public.set_updated_at();
+
+alter table public.site_settings enable row level security;
+
+drop policy if exists "Anyone can read site settings" on public.site_settings;
+create policy "Anyone can read site settings" on public.site_settings
+  for select using (true);
+
+drop policy if exists "Admins can manage site settings" on public.site_settings;
+create policy "Admins can manage site settings" on public.site_settings
+  for all using (public.get_my_role() = 'admin')
+  with check (public.get_my_role() = 'admin');
+
+
+-- ============================================================
 -- PERFORMANCE INDEXES
 -- ============================================================
 create index if not exists idx_profiles_role            on public.profiles(role);
@@ -512,6 +542,10 @@ grant all on public.complaints            to authenticated;
 grant all on public.deleted_complaints    to authenticated;
 grant all on public.audit_logs            to authenticated;
 grant all on public.admission_settings    to authenticated;
+grant all on public.site_settings         to authenticated;
+
+-- Anon can read site_settings (needed for public landing page before login)
+grant select on public.site_settings to anon;
 
 
 -- ============================================================
