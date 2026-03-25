@@ -21,6 +21,8 @@ export default function AdmissionsPage() {
     supabase
       .from("admission_settings")
       .select("*")
+      .order("updated_at", { ascending: false })
+      .limit(1)
       .maybeSingle()
       .then(({ data }) => {
         setSettings(data);
