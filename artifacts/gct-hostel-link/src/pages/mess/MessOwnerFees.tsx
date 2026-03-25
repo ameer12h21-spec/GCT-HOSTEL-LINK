@@ -49,7 +49,7 @@ export default function MessOwnerFees() {
       supabase.from("mess_fees").select("*").eq("month", month),
     ]);
     const feeMap: Record<string, FeeRecord> = {};
-    (feesRes.data || []).forEach((f) => { feeMap[f.student_id] = f; });
+    (feesRes.data || []).forEach((f) => { feeMap[f.student_id] = { ...f, amount: Number(f.amount) }; });
     setStudents(studentsRes.data || []);
     setFees(feeMap);
     setLoading(false);

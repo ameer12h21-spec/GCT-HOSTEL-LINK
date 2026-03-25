@@ -81,11 +81,10 @@ export default function AdminAttendance() {
     }
 
     if (failCount > 0) {
-      toast({ title: "Partial Save", description: `${savedCount} saved, ${failCount} failed.`, variant: "destructive" });
+      toast({ title: "Partial Save", description: `${savedCount} saved, ${failCount} failed. Check your connection.`, variant: "destructive" });
     } else {
       toast({ title: "Attendance Saved", description: `${savedCount} records saved for ${date}` });
       if (savedCount > 0) {
-        const { data: { user } } = await supabase.auth.getUser();
         await supabase.from("audit_logs").insert({
           table_name: "attendance", record_id: date,
           field_name: "bulk_update", old_value: "", new_value: `${savedCount} records updated by admin`,

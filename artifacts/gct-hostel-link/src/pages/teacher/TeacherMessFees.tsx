@@ -25,7 +25,11 @@ export default function TeacherMessFees() {
 
   useEffect(() => {
     supabase.from("mess_fees").select("*, profiles(name, roll_number, hostel)").eq("month", month).order("created_at", { ascending: false })
-      .then(({ data }) => { setFees(data || []); setLoading(false); });
+      .then(({ data }) => {
+        // Cast numeric fields — Supabase returns numeric as string
+        setFees((data || []).map((f) => ({ ...f, amount: Number(f.amount) })));
+        setLoading(false);
+      });
   }, [month]);
 
   const filtered = fees.filter((f) => !search || (f.profiles?.name || "").toLowerCase().includes(search.toLowerCase()) || (f.profiles?.roll_number || "").toLowerCase().includes(search.toLowerCase()));

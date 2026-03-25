@@ -24,7 +24,11 @@ export default function StudentElectricity() {
   useEffect(() => {
     if (!profile) return;
     supabase.from("electricity_bills").select("*").eq("student_id", profile.id).order("month", { ascending: false })
-      .then(({ data }) => { setBills(data || []); setLoading(false); });
+      .then(({ data }) => {
+        // Cast numeric fields — Supabase returns numeric as string
+        setBills((data || []).map((b) => ({ ...b, amount: Number(b.amount) })));
+        setLoading(false);
+      });
   }, [profile]);
 
   const totalPaid = bills.filter((b) => b.status === "paid").reduce((sum, b) => sum + b.amount, 0);

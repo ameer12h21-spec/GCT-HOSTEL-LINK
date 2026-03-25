@@ -40,7 +40,7 @@ export default function TeacherElectricity() {
     const { data: billData } = await supabase.from("electricity_bills").select("*").eq("month", month);
     const billMap: Record<string, Bill> = {};
     const amountMap: Record<string, string> = {};
-    (billData || []).forEach((b) => { billMap[b.student_id] = b; amountMap[b.student_id] = String(b.amount); });
+    (billData || []).forEach((b) => { billMap[b.student_id] = { ...b, amount: Number(b.amount) }; amountMap[b.student_id] = String(Number(b.amount)); });
     setStudents(studs || []);
     setBills(billMap);
     setAmounts(amountMap);

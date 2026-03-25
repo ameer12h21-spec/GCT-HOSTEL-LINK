@@ -61,18 +61,27 @@ export default function TeacherAttendance() {
     }
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
+    let savedCount = 0;
+    let failCount = 0;
 
     for (const entry of unlockedEntries) {
-      const locked = isLocked(entry.studentId);
-      if (locked) continue;
+      if (isLocked(entry.studentId)) continue;
+      let err;
       if (existing[entry.studentId]) {
-        await supabase.from("attendance").update({ status: entry.status, marked_by: user?.id }).eq("id", existing[entry.studentId].id);
+        const res = await supabase.from("attendance").update({ status: entry.status, marked_by: user?.id }).eq("id", existing[entry.studentId].id);
+        err = res.error;
       } else {
-        await supabase.from("attendance").insert({ student_id: entry.studentId, date, status: entry.status, marked_by: user?.id, is_locked: false });
+        const res = await supabase.from("attendance").insert({ student_id: entry.studentId, date, status: entry.status, marked_by: user?.id, is_locked: false });
+        err = res.error;
       }
+      if (err) failCount++; else savedCount++;
     }
 
-    toast({ title: "Attendance Saved", description: `${unlockedEntries.length} records saved for ${date}` });
+    if (failCount > 0) {
+      toast({ title: "Save Error", description: `${savedCount} saved, ${failCount} failed. Check your connection and try again.`, variant: "destructive" });
+    } else {
+      toast({ title: "Attendance Saved", description: `${savedCount} record(s) saved for ${date}` });
+    }
     setSaving(false);
     load();
   }
