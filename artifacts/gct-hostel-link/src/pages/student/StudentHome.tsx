@@ -17,8 +17,8 @@ export default function StudentHome() {
       const month = now.toISOString().slice(0, 7);
       const [attendanceRes, messRes, elecRes, complaintsRes] = await Promise.all([
         supabase.from("attendance").select("status").eq("student_id", profile!.id).gte("date", `${month}-01`),
-        supabase.from("mess_fees").select("*").eq("student_id", profile!.id).eq("month", month).single(),
-        supabase.from("electricity_bills").select("*").eq("student_id", profile!.id).eq("month", month).single(),
+        supabase.from("mess_fees").select("*").eq("student_id", profile!.id).eq("month", month).maybeSingle(),
+        supabase.from("electricity_bills").select("*").eq("student_id", profile!.id).eq("month", month).maybeSingle(),
         supabase.from("complaints").select("id", { count: "exact" }).eq("student_id", profile!.id).eq("status", "open"),
       ]);
 
