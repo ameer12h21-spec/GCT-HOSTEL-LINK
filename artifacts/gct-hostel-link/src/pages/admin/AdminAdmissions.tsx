@@ -56,8 +56,6 @@ export default function AdminAdmissions() {
         is_open: form.is_open,
         apply_link: form.apply_link.trim(),
         message: form.message.trim(),
-        updated_at: new Date().toISOString(),
-        updated_by: user?.id,
       }).eq("id", settings.id);
       error = res.error;
     } else {
@@ -90,11 +88,8 @@ export default function AdminAdmissions() {
       return;
     }
     setSaving(true);
-    const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from("admission_settings").update({
       is_open: newStatus,
-      updated_at: new Date().toISOString(),
-      updated_by: user?.id,
     }).eq("id", settings.id);
     if (error) {
       toast({ title: "Toggle Failed", description: error.message, variant: "destructive" });
