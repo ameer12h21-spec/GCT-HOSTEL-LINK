@@ -29,6 +29,8 @@ export default function AdminAdmissions() {
     const { data, error } = await supabase
       .from("admission_settings")
       .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     if (error) {
