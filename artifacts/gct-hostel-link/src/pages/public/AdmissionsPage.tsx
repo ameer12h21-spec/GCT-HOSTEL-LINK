@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
-import { ExternalLink, BookOpen, Clock, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { ExternalLink, BookOpen, CheckCircle, XCircle, Loader2 } from "lucide-react";
 
 interface AdmissionSettings {
   is_open: boolean;
@@ -18,10 +18,14 @@ export default function AdmissionsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.from("admission_settings").select("*").single().then(({ data }) => {
-      setSettings(data);
-      setLoading(false);
-    });
+    supabase
+      .from("admission_settings")
+      .select("*")
+      .maybeSingle()
+      .then(({ data }) => {
+        setSettings(data);
+        setLoading(false);
+      });
   }, []);
 
   return (
@@ -65,7 +69,7 @@ export default function AdmissionsPage() {
                 </div>
 
                 {settings?.message && (
-                  <p className="text-muted-foreground text-base mb-6">{settings.message}</p>
+                  <p className="text-muted-foreground text-base mb-6 max-w-xl mx-auto">{settings.message}</p>
                 )}
 
                 {settings?.is_open && settings?.apply_link ? (
@@ -79,12 +83,14 @@ export default function AdmissionsPage() {
                       </Button>
                     </a>
                   </div>
-                ) : !settings?.is_open ? (
+                ) : settings?.is_open && !settings?.apply_link ? (
+                  <p className="text-muted-foreground">Admissions are open — application form link coming soon.</p>
+                ) : (
                   <div className="text-muted-foreground">
                     <XCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground/40" />
                     <p>Admissions are currently closed. Please check back later or contact the hostel administration.</p>
                   </div>
-                ) : null}
+                )}
               </div>
             )}
           </CardContent>
