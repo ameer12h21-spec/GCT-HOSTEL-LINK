@@ -84,7 +84,11 @@ export default function Footer() {
             © 2026 Ameer Hamza Arshad — All Rights Reserved
           </p>
           <p className="text-sm text-sidebar-foreground/50">
-            Developed by <span className="text-sidebar-foreground/70 font-medium">Smart Web Solutions</span>
+            Developed by{" "}
+            <a href="https://growweb-pk.web.app" target="_blank" rel="noopener noreferrer"
+              className="text-sidebar-foreground/70 font-medium hover:text-white transition-colors">
+              GROWWEB
+            </a>
           </p>
         </div>
       </div>
