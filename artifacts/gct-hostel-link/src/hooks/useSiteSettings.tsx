@@ -150,7 +150,7 @@ export const COLOR_THEMES: ColorThemePreset[] = [
 export const DEFAULT_SETTINGS: SiteSettings = {
   siteName: "GCT Hostel Link",
   siteSubtitle: "TEVTA Taxila",
-  logoUrl: "",
+  logoUrl: "/site-logo.png",
 
   heroBadge: "GCT TEVTA Hostel, Taxila",
   heroTitle: "Hostel Management",
@@ -243,9 +243,12 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
 
       if (!error && data) {
         rowIdRef.current = data.id;
+        const saved = data.settings as Partial<SiteSettings>;
         const merged: SiteSettings = {
           ...DEFAULT_SETTINGS,
-          ...(data.settings as Partial<SiteSettings>),
+          ...saved,
+          // Always fall back to default logo if stored value is empty
+          logoUrl: saved.logoUrl || DEFAULT_SETTINGS.logoUrl,
         };
         setSettings(merged);
         applyThemeVars(merged);
@@ -267,9 +270,11 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
         { event: "*", schema: "public", table: "site_settings" },
         (payload) => {
           if (payload.new && (payload.new as any).settings) {
+            const saved = (payload.new as any).settings as Partial<SiteSettings>;
             const merged: SiteSettings = {
               ...DEFAULT_SETTINGS,
-              ...(payload.new as any).settings,
+              ...saved,
+              logoUrl: saved.logoUrl || DEFAULT_SETTINGS.logoUrl,
             };
             setSettings(merged);
             applyThemeVars(merged);
