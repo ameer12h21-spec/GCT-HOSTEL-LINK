@@ -69,8 +69,14 @@ export default function AdminSiteSettings() {
       return;
     }
     setLogoUploading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({ title: "Upload failed", description: "You must be logged in to upload a logo.", variant: "destructive" });
+      setLogoUploading(false);
+      return;
+    }
     const ext = file.name.split(".").pop();
-    const path = `site-logo/logo-${Date.now()}.${ext}`;
+    const path = `${user.id}/site-logo.${ext}`;
     const { error } = await supabase.storage.from("profile-photos").upload(path, file, { upsert: true });
     if (error) {
       toast({ title: "Upload failed", description: error.message, variant: "destructive" });
