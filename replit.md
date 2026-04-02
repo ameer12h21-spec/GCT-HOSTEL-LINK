@@ -4,19 +4,23 @@
 
 pnpm workspace monorepo using TypeScript. Contains the GCT Hostel Link application plus the base API server infrastructure.
 
-## Firebase Deployment (GCT Hostel Link)
+## Deployment (GCT Hostel Link)
 
+### Firebase (Live Site)
 - **Live URL**: https://gct-hostel-link.web.app
 - **Firebase Project**: gct-hostel-link
-- **Token**: stored as `FIREBASE_TOKEN` env var (shared)
+- **Token**: stored as `FIREBASE_TOKEN` env var
 - **Config files**: `artifacts/gct-hostel-link/firebase.json` and `.firebaserc`
 - **Build output**: `artifacts/gct-hostel-link/dist/public`
 
-**To deploy:**
+### GitHub (Source Code)
+- **Repository**: https://github.com/ameer12h21-spec/GCT-HOSTEL-LINK
+- **Token**: stored as `GITHUB_TOKEN` env var
+- **Branch**: main
+
+### Deploy Command (ALWAYS run both after every change)
 ```bash
-cd artifacts/gct-hostel-link
-PORT=3000 BASE_PATH=/ pnpm run build
-firebase deploy --only hosting --token "$FIREBASE_TOKEN"
+cd artifacts/gct-hostel-link && PORT=3000 BASE_PATH=/ pnpm run build && firebase deploy --only hosting --token "$FIREBASE_TOKEN" && cd /home/runner/workspace && GIT_TERMINAL_PROMPT=0 git push https://ameer12h21-spec:${GITHUB_TOKEN}@github.com/ameer12h21-spec/GCT-HOSTEL-LINK.git main
 ```
 
 ## Stack
