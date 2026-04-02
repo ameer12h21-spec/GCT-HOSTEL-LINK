@@ -1,0 +1,47 @@
+~/workspace$ ^C
+~/workspace$ GIT_TERMINAL_PROMPT=0 git push https://ameer12h21-spec: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@github.com/ameer12h21-spec/GCT-HOSTEL-LINK.git main
+Enumerating objects: 609, done.
+Counting objects: 100% (609/609), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (598/598), done.
+Writing objects: 100% (609/609), 1.58 MiB | 4.87 MiB/s, done.
+Total 609 (delta 338), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (338/338), done.
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: 
+remote: - GITHUB PUSH PROTECTION
+remote:   —————————————————————————————————————————
+remote:     Resolve the following violations before pushing again
+remote: 
+remote:     - Push cannot contain secrets
+remote: 
+remote:     
+remote:      (?) Learn how to resolve a blocked push
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push
+remote:     
+remote:     
+remote:       —— GitHub Personal Access Token ——————————————————————
+remote:        locations:
+remote:          - commit: f2dce6357602573b42f2c75db7fc269c6a94168a
+remote:            path: attached_assets/Pasted--workspace-200-echo-GCT-HOSTEL-LINK-README-md-echo-GCT-_1775106071598.txt:29
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/ameer12h21-spec/GCT-HOSTEL-LINK/security/secret-scanning/unblock-secret/3BmuI81YMAH8Yf7xMsCaKgnNcpw
+remote:     
+remote:     
+remote:       —— Google OAuth Refresh Token ————————————————————————
+remote:        locations:
+remote:          - commit: 457272bdba1a358b2d84bd8071fb932b59a8d779
+remote:            path: .replit:33
+remote:          - commit: 457272bdba1a358b2d84bd8071fb932b59a8d779
+remote:            path: attached_assets/Pasted-Microsoft-Windows-Version-10-0-19045-6466-c-Microsoft-C_1775101977087.txt:14
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/ameer12h21-spec/GCT-HOSTEL-LINK/security/secret-scanning/unblock-secret/3BmuI3R6vJzQojJZ4xo8toYhPXP
+remote:     
+remote: 
+remote: 
+To https://github.com/ameer12h21-spec/GCT-HOSTEL-LINK.git
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/ameer12h21-spec/GCT-HOSTEL-LINK.git'
+~/workspace$ 
