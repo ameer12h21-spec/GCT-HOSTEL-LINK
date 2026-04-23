@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Zap, Download } from "lucide-react";
+import { Loader2, Zap, Download, RefreshCw } from "lucide-react";
 import { formatPKR, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { exportToCSV } from "@/lib/exportUtils";
@@ -20,16 +20,27 @@ export default function StudentElectricity() {
   const { profile } = useAuth();
   const [bills, setBills] = useState<ElecBill[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const load = useCallback(async () => {
+    if (!profile) return;
+    const { data, error } = await supabase
+      .from("electricity_bills").select("*").eq("student_id", profile.id).order("month", { ascending: false });
+    if (error) console.error("Electricity bills fetch error:", error.message);
+    setBills((data || []).map((b) => ({ ...b, amount: Number(b.amount) })));
+    setLoading(false);
+    setLastUpdated(new Date());
+  }, [profile]);
 
   useEffect(() => {
     if (!profile) return;
-    supabase.from("electricity_bills").select("*").eq("student_id", profile.id).order("month", { ascending: false })
-      .then(({ data, error }) => {
-        if (error) console.error("Electricity bills fetch error:", error.message);
-        setBills((data || []).map((b) => ({ ...b, amount: Number(b.amount) })));
-        setLoading(false);
-      });
-  }, [profile]);
+    load();
+    const ch = supabase.channel("student_elec_rt_" + profile.id)
+      .on("postgres_changes", { event: "*", schema: "public", table: "electricity_bills",
+        filter: `student_id=eq.${profile.id}` }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [profile, load]);
 
   const totalPaid = bills.filter((b) => b.status === "paid").reduce((sum, b) => sum + b.amount, 0);
   const totalUnpaid = bills.filter((b) => b.status === "unpaid").reduce((sum, b) => sum + b.amount, 0);
@@ -51,13 +62,20 @@ export default function StudentElectricity() {
           <h1 className="text-2xl font-bold text-foreground">Electricity Bills</h1>
           <p className="text-sm text-muted-foreground">Monthly electricity bills set by teacher</p>
         </div>
-        <Button onClick={handleExport} variant="outline" size="sm">
-          <Download className="w-4 h-4 mr-1" />CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          {lastUpdated && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <RefreshCw className="w-3 h-3" />Live
+            </span>
+          )}
+          <Button onClick={handleExport} variant="outline" size="sm">
+            <Download className="w-4 h-4 mr-1" />CSV
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <Card className="border border-border border-green-500/20">
+        <Card className="border border-green-500/20">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-1">
               <Zap className="w-4 h-4 text-green-500" />
@@ -66,7 +84,7 @@ export default function StudentElectricity() {
             <div className="text-xl font-bold text-green-600">{formatPKR(totalPaid)}</div>
           </CardContent>
         </Card>
-        <Card className="border border-border border-red-500/20">
+        <Card className="border border-red-500/20">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-1">
               <Zap className="w-4 h-4 text-red-500" />
@@ -91,7 +109,9 @@ export default function StudentElectricity() {
                     <div className="font-medium text-foreground text-sm">
                       {new Date(b.month + "-01").toLocaleDateString("en-PK", { year: "numeric", month: "long" })}
                     </div>
-                    {b.paid_at && <div className="text-xs text-muted-foreground mt-0.5">Paid: {formatDate(b.paid_at)}</div>}
+                    {b.paid_at && (
+                      <div className="text-xs text-muted-foreground mt-0.5">Paid: {formatDate(b.paid_at)}</div>
+                    )}
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-semibold text-foreground">{formatPKR(b.amount)}</span>

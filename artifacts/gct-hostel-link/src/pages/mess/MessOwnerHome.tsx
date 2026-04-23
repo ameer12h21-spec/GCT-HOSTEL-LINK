@@ -1,38 +1,57 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
-import { DollarSign, CheckCircle, XCircle, Users } from "lucide-react";
+import { DollarSign, CheckCircle, XCircle, Users, RefreshCw } from "lucide-react";
 import { formatPKR } from "@/lib/utils";
 
 export default function MessOwnerHome() {
   const { profile } = useAuth();
   const [stats, setStats] = useState({ totalStudents: 0, paid: 0, unpaid: 0, totalCollected: 0 });
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const load = useCallback(async () => {
+    const month = new Date().toISOString().slice(0, 7);
+    const [studentsRes, feesRes] = await Promise.all([
+      supabase.from("profiles").select("id", { count: "exact" }).eq("role", "student").eq("status", "active"),
+      supabase.from("mess_fees").select("status, amount").eq("month", month),
+    ]);
+    const fees = feesRes.data || [];
+    const paid = fees.filter((f) => f.status === "paid");
+    setStats({
+      totalStudents: studentsRes.count || 0,
+      paid: paid.length,
+      unpaid: fees.filter((f) => f.status !== "paid").length,
+      totalCollected: paid.reduce((sum, f) => sum + Number(f.amount), 0),
+    });
+    setLastUpdated(new Date());
+  }, []);
 
   useEffect(() => {
-    async function load() {
-      const month = new Date().toISOString().slice(0, 7);
-      const [studentsRes, feesRes] = await Promise.all([
-        supabase.from("profiles").select("id", { count: "exact" }).eq("role", "student").eq("status", "active"),
-        supabase.from("mess_fees").select("status, amount").eq("month", month),
-      ]);
-      const fees = feesRes.data || [];
-      const paid = fees.filter((f) => f.status === "paid");
-      setStats({
-        totalStudents: studentsRes.count || 0,
-        paid: paid.length,
-        unpaid: fees.filter((f) => f.status === "unpaid").length,
-        totalCollected: paid.reduce((sum, f) => sum + Number(f.amount), 0),
-      });
-    }
     load();
-  }, []);
+    // Real-time: refresh stats on any fee or student profile change
+    const ch = supabase.channel("mess_owner_home_rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "mess_fees" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [load]);
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Mess Owner Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Welcome, {profile?.name} — {new Date().toLocaleDateString("en-PK", { month: "long", year: "numeric" })}</p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Mess Owner Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            Welcome, {profile?.name} — {new Date().toLocaleDateString("en-PK", { month: "long", year: "numeric" })}
+          </p>
+        </div>
+        {lastUpdated && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+            <RefreshCw className="w-3 h-3" />
+            Live · {lastUpdated.toLocaleTimeString("en-PK", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { Loader2, CheckCircle, XCircle, Eye, Download, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Eye, Download, AlertCircle, RefreshCw } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
 import { exportToCSV } from "@/lib/exportUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -30,6 +30,7 @@ export default function AdminComplaints() {
   const [selected, setSelected] = useState<Complaint | null>(null);
   const [reply, setReply] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   function handleExport() {
     const rows = filtered.map((c) => ({
@@ -45,7 +46,7 @@ export default function AdminComplaints() {
     exportToCSV(rows, "complaints");
   }
 
-  async function loadComplaints() {
+  const loadComplaints = useCallback(async () => {
     setFetchError(null);
     const { data: rows, error } = await supabase
       .from("complaints")
@@ -60,19 +61,21 @@ export default function AdminComplaints() {
     const studentIds = [...new Set(list.map((c) => c.student_id).filter(Boolean))];
     let profileMap: Record<string, { name: string; roll_number: string }> = {};
     if (studentIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, name, roll_number")
-        .in("id", studentIds);
-      for (const p of profiles || []) {
-        profileMap[p.id] = { name: p.name, roll_number: p.roll_number };
-      }
+      const { data: profiles } = await supabase.from("profiles").select("id, name, roll_number").in("id", studentIds);
+      for (const p of profiles || []) profileMap[p.id] = { name: p.name, roll_number: p.roll_number };
     }
     setComplaints(list.map((c) => ({ ...c, profiles: profileMap[c.student_id] })));
     setLoading(false);
-  }
+    setLastUpdated(new Date());
+  }, []);
 
-  useEffect(() => { loadComplaints(); }, []);
+  useEffect(() => {
+    loadComplaints();
+    const ch = supabase.channel("admin_complaints_rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "complaints" }, () => loadComplaints())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [loadComplaints]);
 
   async function updateStatus(id: string, newStatus: string) {
     const { error: updateErr } = await supabase.from("complaints").update({ status: newStatus }).eq("id", id);
@@ -92,20 +95,22 @@ export default function AdminComplaints() {
         });
       }
     }
-    toast({ title: "Complaint Updated", description: `Status set to ${newStatus}` });
-    loadComplaints();
+    toast({ title: "Complaint Updated", description: `Status set to ${newStatus.replace("_", " ")}` });
     setSelected(null);
   }
 
   async function saveReply(id: string) {
-    const { error } = await supabase.from("complaints").update({ reply }).eq("id", id);
+    if (!reply.trim()) {
+      toast({ title: "Reply is empty", description: "Please enter a reply before saving.", variant: "destructive" });
+      return;
+    }
+    const { error } = await supabase.from("complaints").update({ reply: reply.trim() }).eq("id", id);
     if (error) {
       toast({ title: "Save Failed", description: "Could not save reply. Please try again.", variant: "destructive" });
       return;
     }
-    toast({ title: "Reply Saved" });
+    toast({ title: "Reply Saved", description: "The student will be able to see your reply." });
     setReply("");
-    loadComplaints();
     setSelected(null);
   }
 
@@ -126,13 +131,25 @@ export default function AdminComplaints() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Complaints Management</h1>
-          <p className="text-sm text-muted-foreground">{complaints.length} total complaints</p>
+          <p className="text-sm text-muted-foreground flex items-center gap-1">
+            {complaints.length} total complaints
+            {lastUpdated && (
+              <span className="ml-2 flex items-center gap-1 text-xs text-muted-foreground/60">
+                <RefreshCw className="w-3 h-3" />Live
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {["all", "open", "in_progress", "fixed", "cancelled"].map((s) => (
             <Button key={s} size="sm" variant={filterStatus === s ? "default" : "outline"}
               onClick={() => setFilterStatus(s)} className="text-xs capitalize">
               {s.replace("_", " ")}
+              {s !== "all" && (
+                <span className="ml-1 text-xs opacity-60">
+                  ({complaints.filter(c => c.status === s).length})
+                </span>
+              )}
             </Button>
           ))}
           <Button size="sm" variant="outline" onClick={handleExport}>
@@ -151,7 +168,9 @@ export default function AdminComplaints() {
         <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
       ) : (
         <div className="space-y-3">
-          {filtered.length === 0 && <div className="text-center py-12 text-muted-foreground">No complaints found</div>}
+          {filtered.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">No complaints found</div>
+          )}
           {filtered.map((c) => (
             <Card key={c.id} className="border border-border hover:border-primary/30 transition-colors">
               <CardContent className="p-4">
@@ -161,6 +180,7 @@ export default function AdminComplaints() {
                       <span className="font-semibold text-sm text-foreground">{c.subject}</span>
                       {statusBadge(c.status)}
                       <Badge className="text-xs bg-muted text-muted-foreground border-border">{c.category}</Badge>
+                      {c.reply && <Badge className="text-xs bg-purple-500/15 text-purple-600 border-purple-500/30">Replied</Badge>}
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2">{c.description}</p>
                     <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
@@ -168,7 +188,8 @@ export default function AdminComplaints() {
                       <span>{formatDateTime(c.created_at)}</span>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => { setSelected(c); setReply(c.reply || ""); }}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0"
+                    onClick={() => { setSelected(c); setReply(c.reply || ""); }}>
                     <Eye className="w-4 h-4" />
                   </Button>
                 </div>
@@ -189,19 +210,35 @@ export default function AdminComplaints() {
                   {statusBadge(selected.status)}
                 </div>
                 <div className="text-xs text-muted-foreground mb-3">
-                  Category: {selected.category} • By: {selected.profiles?.name} • {formatDateTime(selected.created_at)}
+                  Category: {selected.category} • By: {selected.profiles?.name} ({selected.profiles?.roll_number}) • {formatDateTime(selected.created_at)}
                 </div>
                 <p className="text-sm text-foreground bg-muted/50 rounded-lg p-3">{selected.description}</p>
               </div>
               <div>
                 <label className="text-xs font-medium text-muted-foreground">Reply / Response</label>
-                <Textarea className="mt-1.5" placeholder="Write your reply..." value={reply} onChange={(e) => setReply(e.target.value)} rows={3} />
+                <Textarea className="mt-1.5" placeholder="Write your reply..." value={reply}
+                  onChange={(e) => setReply(e.target.value)} rows={3} />
               </div>
               <div className="flex gap-2 flex-wrap">
-                <Button size="sm" onClick={() => saveReply(selected.id)} className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">Save Reply</Button>
-                {selected.status === "open" && <Button size="sm" variant="outline" onClick={() => updateStatus(selected.id, "in_progress")}>Mark In Progress</Button>}
-                {selected.status !== "fixed" && <Button size="sm" variant="outline" className="text-green-600 border-green-500/30 hover:bg-green-500/10" onClick={() => updateStatus(selected.id, "fixed")}><CheckCircle className="w-4 h-4 mr-1" />Mark Fixed</Button>}
-                {selected.status !== "cancelled" && <Button size="sm" variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => updateStatus(selected.id, "cancelled")}><XCircle className="w-4 h-4 mr-1" />Cancel</Button>}
+                <Button size="sm" onClick={() => saveReply(selected.id)}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">Save Reply</Button>
+                {selected.status === "open" && (
+                  <Button size="sm" variant="outline" onClick={() => updateStatus(selected.id, "in_progress")}>Mark In Progress</Button>
+                )}
+                {selected.status !== "fixed" && (
+                  <Button size="sm" variant="outline"
+                    className="text-green-600 border-green-500/30 hover:bg-green-500/10"
+                    onClick={() => updateStatus(selected.id, "fixed")}>
+                    <CheckCircle className="w-4 h-4 mr-1" />Mark Fixed
+                  </Button>
+                )}
+                {selected.status !== "cancelled" && (
+                  <Button size="sm" variant="outline"
+                    className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                    onClick={() => updateStatus(selected.id, "cancelled")}>
+                    <XCircle className="w-4 h-4 mr-1" />Cancel
+                  </Button>
+                )}
               </div>
             </div>
           )}

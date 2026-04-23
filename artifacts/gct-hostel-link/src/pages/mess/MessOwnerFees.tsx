@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +42,7 @@ export default function MessOwnerFees() {
   const [reverseModal, setReverseModal] = useState<{ student: Profile; fee: FeeRecord } | null>(null);
   const [reversing, setReversing] = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     const [studentsRes, feesRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("role", "student").eq("status", "active").order("name"),
@@ -53,9 +53,16 @@ export default function MessOwnerFees() {
     setStudents(studentsRes.data || []);
     setFees(feeMap);
     setLoading(false);
-  }
+  }, [month]);
 
-  useEffect(() => { load(); }, [month]);
+  useEffect(() => {
+    load();
+    const ch = supabase.channel("mess_fees_rt_" + month)
+      .on("postgres_changes", { event: "*", schema: "public", table: "mess_fees" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [load, month]);
 
   function handleExport() {
     const rows = filtered.map((s) => ({
