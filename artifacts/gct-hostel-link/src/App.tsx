@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { SiteSettingsProvider } from "@/hooks/useSiteSettings";
+import { useNotifications } from "@/hooks/useNotifications";
 
 import LandingPage from "@/pages/public/LandingPage";
 import LoginPage from "@/pages/public/LoginPage";
@@ -60,6 +61,11 @@ import MessOwnerProfile from "@/pages/mess/MessOwnerProfile";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
+
+function NotificationManager() {
+  useNotifications();
+  return null;
+}
 
 function ProtectedRoute({
   children,
@@ -338,6 +344,7 @@ function App() {
         <ThemeProvider>
           <SiteSettingsProvider>
             <AuthProvider>
+              <NotificationManager />
               <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
                 <AppRoutes />
               </WouterRouter>
