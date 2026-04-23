@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Loader2, Plus, MessageSquare, RefreshCw } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
+import { NetworkWarningBanner } from "@/components/NetworkIndicator";
 
 interface Complaint {
   id: string;
@@ -100,6 +101,7 @@ export default function StudentComplaints() {
 
   return (
     <div>
+      <NetworkWarningBanner />
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Complaints</h1>

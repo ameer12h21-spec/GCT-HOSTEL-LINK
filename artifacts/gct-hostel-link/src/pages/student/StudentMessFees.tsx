@@ -3,7 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
-import { Loader2, DollarSign, Download, RefreshCw } from "lucide-react";
+import { Loader2, DollarSign, Download, RefreshCw, AlertCircle } from "lucide-react";
+import { NetworkWarningBanner } from "@/components/NetworkIndicator";
 import { formatPKR, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { exportToCSV } from "@/lib/exportUtils";
@@ -57,6 +58,7 @@ export default function StudentMessFees() {
 
   return (
     <div>
+      <NetworkWarningBanner />
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Mess Fees</h1>

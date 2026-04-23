@@ -2,7 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
-import { Users, DollarSign, MessageSquare, Clock, RefreshCw } from "lucide-react";
+import { Users, DollarSign, MessageSquare, Clock, RefreshCw, AlertCircle } from "lucide-react";
+import { NetworkWarningBanner } from "@/components/NetworkIndicator";
 
 interface Stats {
   totalStudents: number;
@@ -64,6 +65,7 @@ export default function AdminHome() {
 
   return (
     <div>
+      <NetworkWarningBanner />
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">System Overview</h1>

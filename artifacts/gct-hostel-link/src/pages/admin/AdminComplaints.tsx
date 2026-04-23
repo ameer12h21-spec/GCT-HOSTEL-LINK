@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Loader2, CheckCircle, XCircle, Eye, Download, AlertCircle, RefreshCw } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
+import { NetworkWarningBanner } from "@/components/NetworkIndicator";
 import { exportToCSV } from "@/lib/exportUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -128,6 +129,7 @@ export default function AdminComplaints() {
 
   return (
     <div>
+      <NetworkWarningBanner />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Complaints Management</h1>
