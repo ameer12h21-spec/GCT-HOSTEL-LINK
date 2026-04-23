@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 import type { Profile, UserRole } from "@/lib/supabase";
 import { Plus, Trash2, Loader2, Eye, XCircle, CheckCircle } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { SUPER_ADMIN_EMAIL } from "@/lib/constants";
 
 export default function AdminStaff() {
   const { toast } = useToast();
@@ -25,6 +26,7 @@ export default function AdminStaff() {
       .from("profiles")
       .select("*")
       .in("role", ["teacher", "mess_owner", "admin"])
+      .neq("email", SUPER_ADMIN_EMAIL)
       .order("created_at", { ascending: false });
     setStaff(data || []);
     setLoading(false);

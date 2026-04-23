@@ -29,6 +29,7 @@ import AdminAdmissions from "@/pages/admin/AdminAdmissions";
 import AdminTrash from "@/pages/admin/AdminTrash";
 import AdminProfile from "@/pages/admin/AdminProfile";
 import AdminSiteSettings from "@/pages/admin/AdminSiteSettings";
+import AdminChat from "@/pages/admin/AdminChat";
 
 import StudentLayout from "@/pages/student/StudentLayout";
 import StudentHome from "@/pages/student/StudentHome";
@@ -37,6 +38,7 @@ import StudentAttendance from "@/pages/student/StudentAttendance";
 import StudentMessFees from "@/pages/student/StudentMessFees";
 import StudentElectricity from "@/pages/student/StudentElectricity";
 import StudentComplaints from "@/pages/student/StudentComplaints";
+import StudentChat from "@/pages/student/StudentChat";
 
 import TeacherLayout from "@/pages/teacher/TeacherLayout";
 import TeacherHome from "@/pages/teacher/TeacherHome";
@@ -46,6 +48,7 @@ import TeacherElectricity from "@/pages/teacher/TeacherElectricity";
 import TeacherComplaints from "@/pages/teacher/TeacherComplaints";
 import TeacherMessFees from "@/pages/teacher/TeacherMessFees";
 import TeacherProfile from "@/pages/teacher/TeacherProfile";
+import TeacherChat from "@/pages/teacher/TeacherChat";
 
 import MessOwnerLayout from "@/pages/mess/MessOwnerLayout";
 import MessOwnerHome from "@/pages/mess/MessOwnerHome";
@@ -172,6 +175,13 @@ function AppRoutes() {
           </ProtectedRoute>
         )}
       </Route>
+      <Route path="/admin/chat">
+        {() => (
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminLayout><AdminChat /></AdminLayout>
+          </ProtectedRoute>
+        )}
+      </Route>
 
       <Route path="/student">
         {() => (
@@ -212,6 +222,13 @@ function AppRoutes() {
         {() => (
           <ProtectedRoute allowedRoles={["student"]}>
             <StudentLayout><StudentComplaints /></StudentLayout>
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/student/chat">
+        {() => (
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentLayout><StudentChat /></StudentLayout>
           </ProtectedRoute>
         )}
       </Route>
@@ -262,6 +279,13 @@ function AppRoutes() {
         {() => (
           <ProtectedRoute allowedRoles={["teacher"]}>
             <TeacherLayout><TeacherProfile /></TeacherLayout>
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/teacher/chat">
+        {() => (
+          <ProtectedRoute allowedRoles={["teacher"]}>
+            <TeacherLayout><TeacherChat /></TeacherLayout>
           </ProtectedRoute>
         )}
       </Route>

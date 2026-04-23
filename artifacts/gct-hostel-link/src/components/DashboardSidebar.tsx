@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useChatUnread } from "@/hooks/useChatUnread";
 import { signOut } from "@/lib/auth";
 import { SidebarNetworkIndicator } from "@/components/NetworkIndicator";
 import {
   LayoutDashboard, Users, CalendarCheck, MessageSquare,
   DollarSign, UserCog, BookOpen, Trash2, LogOut,
   Sun, Moon, User, Zap, Building2, X,
-  CreditCard, History, Settings, Paintbrush
+  CreditCard, History, Settings, Paintbrush, MessageCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,7 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   label: string;
+  chatBadge?: boolean;
 }
 
 const adminNav: NavItem[] = [
@@ -24,6 +26,7 @@ const adminNav: NavItem[] = [
   { href: "/admin/students", icon: Users, label: "Students" },
   { href: "/admin/attendance", icon: CalendarCheck, label: "Attendance" },
   { href: "/admin/complaints", icon: MessageSquare, label: "Complaints" },
+  { href: "/admin/chat", icon: MessageCircle, label: "Chat Monitor" },
   { href: "/admin/mess-fees", icon: DollarSign, label: "Mess Fees" },
   { href: "/admin/electricity", icon: Zap, label: "Electricity Bills" },
   { href: "/admin/staff", icon: UserCog, label: "Teachers & Staff" },
@@ -40,6 +43,7 @@ const studentNav: NavItem[] = [
   { href: "/student/mess-fees", icon: DollarSign, label: "Mess Fees" },
   { href: "/student/electricity", icon: Zap, label: "Electricity Bills" },
   { href: "/student/complaints", icon: MessageSquare, label: "Complaints" },
+  { href: "/student/chat", icon: MessageCircle, label: "Messages", chatBadge: true },
 ];
 
 const teacherNav: NavItem[] = [
@@ -48,6 +52,7 @@ const teacherNav: NavItem[] = [
   { href: "/teacher/attendance", icon: CalendarCheck, label: "Attendance" },
   { href: "/teacher/electricity", icon: Zap, label: "Electricity Bills" },
   { href: "/teacher/complaints", icon: MessageSquare, label: "Complaints" },
+  { href: "/teacher/chat", icon: MessageCircle, label: "Chat", chatBadge: true },
   { href: "/teacher/mess-fees", icon: DollarSign, label: "Mess Fees" },
   { href: "/teacher/profile", icon: Settings, label: "Profile & Settings" },
 ];
@@ -90,6 +95,7 @@ export default function DashboardSidebar({ mobileOpen, onMobileClose }: Props) {
   const { theme, toggleTheme } = useTheme();
   const { settings } = useSiteSettings();
   const [location] = useLocation();
+  const chatUnread = useChatUnread();
 
   if (!profile) return null;
 
@@ -150,6 +156,7 @@ export default function DashboardSidebar({ mobileOpen, onMobileClose }: Props) {
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
+          const badge = item.chatBadge ? chatUnread : 0;
           return (
             <Link
               key={item.href}
@@ -163,7 +170,12 @@ export default function DashboardSidebar({ mobileOpen, onMobileClose }: Props) {
               )}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {badge > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-bold rounded-full h-4 min-w-4 px-1 flex items-center justify-center leading-none">
+                  {badge > 99 ? "99+" : badge}
+                </span>
+              )}
             </Link>
           );
         })}
