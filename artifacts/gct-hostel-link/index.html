@@ -2,22 +2,146 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <meta name="description" content="GCT Hostel Link — A centralized digital management system for GCT TEVTA Hostel, Taxila. Manage admissions, fees, attendance and complaints online." />
-    <meta name="author" content="Ameer Hamza Arshad — GROWWEB (growweb-pk.web.app)" />
-    <meta name="robots" content="index, follow" />
-    <meta property="og:title" content="GCT Hostel Link — TEVTA Taxila" />
-    <meta property="og:description" content="Digital hostel management system for GCT TEVTA Hostel, Taxila." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
+
+    <!-- ═══ Primary SEO ═══ -->
+    <title>GCT Hostel Link — Digital Hostel Management System | GCT TEVTA Taxila</title>
+    <meta name="description" content="GCT Hostel Link is Pakistan's most advanced hostel management system for GCT TEVTA Taxila. Manage student admissions, daily attendance, mess fees (PKR), electricity bills, and complaints — all in real time with role-based dashboards." />
+    <meta name="keywords" content="GCT hostel, TEVTA Taxila hostel, hostel management system, Pakistan hostel system, hostel fees online, student attendance system, mess fee management, GCT Taxila, hostel management Pakistan, digital hostel" />
+    <meta name="author" content="Ameer Hamza Arshad" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="application-name" content="GCT Hostel Link" />
+    <meta name="apple-mobile-web-app-title" content="GCT Hostel Link" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="canonical" href="https://gct-hostel-link.web.app/" />
+
+    <!-- ═══ Open Graph (Facebook / WhatsApp) ═══ -->
     <meta property="og:type" content="website" />
-    <title>GCT Hostel Link — TEVTA Taxila</title>
+    <meta property="og:site_name" content="GCT Hostel Link" />
+    <meta property="og:title" content="GCT Hostel Link — Digital Hostel Management System" />
+    <meta property="og:description" content="Pakistan's most advanced hostel management platform. Real-time fees, attendance, electricity bills, and complaints — built for GCT TEVTA Taxila." />
+    <meta property="og:url" content="https://gct-hostel-link.web.app/" />
+    <meta property="og:image" content="https://gct-hostel-link.web.app/site-logo.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="GCT Hostel Link — Hostel Management System" />
+    <meta property="og:locale" content="en_PK" />
+
+    <!-- ═══ Twitter / X Card ═══ -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="GCT Hostel Link — Digital Hostel Management" />
+    <meta name="twitter:description" content="Real-time hostel management — attendance, fees, electricity, complaints. Built for GCT TEVTA Taxila." />
+    <meta name="twitter:image" content="https://gct-hostel-link.web.app/site-logo.png" />
+
+    <!-- ═══ Geo & Language ═══ -->
+    <meta name="geo.region" content="PK-PB" />
+    <meta name="geo.placename" content="Taxila, Punjab, Pakistan" />
+    <meta name="language" content="English" />
+    <meta name="rating" content="general" />
+
+    <!-- ═══ Icons ═══ -->
     <link rel="icon" type="image/png" href="/site-logo.png" />
     <link rel="apple-touch-icon" href="/site-logo.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- ═══ Fonts ═══ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- ═══ JSON-LD Structured Data ═══ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://gct-hostel-link.web.app/#website",
+          "url": "https://gct-hostel-link.web.app/",
+          "name": "GCT Hostel Link",
+          "description": "Digital hostel management system for GCT TEVTA Taxila",
+          "inLanguage": "en-PK",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://gct-hostel-link.web.app/support?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "WebApplication",
+          "@id": "https://gct-hostel-link.web.app/#app",
+          "name": "GCT Hostel Link",
+          "description": "Pakistan's most advanced hostel management system — real-time attendance, mess fees, electricity billing, and complaint tracking for GCT TEVTA Taxila.",
+          "url": "https://gct-hostel-link.web.app/",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Any",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "PKR"
+          },
+          "featureList": [
+            "Role-based dashboards for Admin, Teacher, Mess Owner and Student",
+            "Real-time mess fee tracking with PKR currency",
+            "Daily attendance management with 3-day auto-lock",
+            "Per-student monthly electricity bill management",
+            "Anonymous complaint submission with audit trail",
+            "WhatsApp-style internal chat system",
+            "Export to CSV reports",
+            "Dark and light mode"
+          ]
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://gct-hostel-link.web.app/#org",
+          "name": "GCT TEVTA Hostel Taxila",
+          "url": "https://gct-hostel-link.web.app/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://gct-hostel-link.web.app/site-logo.png"
+          },
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "HMC Road, near HMC-3, Government College of Technology (TEVTA)",
+            "addressLocality": "Taxila",
+            "addressRegion": "Punjab",
+            "addressCountry": "PK"
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "info@gcthostellink.edu.pk",
+            "availableLanguage": ["Urdu", "English"]
+          },
+          "sameAs": [
+            "https://github.com/ameer12h21-spec/GCT-HOSTEL-LINK"
+          ]
+        },
+        {
+          "@type": "EducationalOrganization",
+          "name": "Government College of Technology TEVTA Taxila",
+          "url": "https://gct-hostel-link.web.app/about",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "HMC Road near HMC-3",
+            "addressLocality": "Taxila",
+            "addressRegion": "Punjab",
+            "addressCountry": "PK"
+          }
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <noscript>
+      <p>GCT Hostel Link requires JavaScript to function. Please enable JavaScript in your browser.</p>
+    </noscript>
   </body>
 </html>
